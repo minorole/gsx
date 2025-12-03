@@ -1,0 +1,156 @@
+#!/usr/bin/env zsh
+
+set -eu
+set -o pipefail 2>/dev/null || true
+
+# gsx - Ghostty Session Manager
+# https://github.com/minorole/gsx
+
+GSX_ROOT="${0:A:h:h}"
+
+# Source modules
+source "${GSX_ROOT}/lib/core.zsh"
+source "${GSX_ROOT}/lib/input.zsh"
+source "${GSX_ROOT}/lib/update.zsh"
+source "${GSX_ROOT}/lib/help.zsh"
+source "${GSX_ROOT}/lib/config.zsh"
+source "${GSX_ROOT}/lib/projects.zsh"
+source "${GSX_ROOT}/lib/layouts.zsh"
+source "${GSX_ROOT}/lib/setup.zsh"
+
+# Global flags
+DRY_RUN=false
+
+# Open session for a project
+# Sets PROJECT_LAYOUT as side effect (for caller to use in header)
+open_session() {
+  local project_dir=$1
+  local project_name=$(basename "${project_dir}")
+
+  parse_config
+  parse_project_config "${project_name}"
+  PROJECT_LAYOUT="${DEFAULT_LAYOUT}"
+
+  if [[ "${DRY_RUN}" == true ]]; then
+    echo "  ${project_name}"
+    echo "    dir:    ${project_dir}"
+    echo "    layout: ${DEFAULT_LAYOUT}"
+    echo "    left:   ${CMD_LEFT:-<empty>}"
+    echo "    middle: ${CMD_MIDDLE:-<empty>}"
+    echo "    right:  ${CMD_RIGHT:-<empty>}"
+    return 0
+  fi
+
+  case "${DEFAULT_LAYOUT}" in
+    3-col)
+      layout_3col "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_MIDDLE}" "${CMD_RIGHT}"
+      ;;
+    2-col)
+      layout_2col "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_RIGHT}"
+      ;;
+    main+bottom)
+      layout_main_bottom "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_MIDDLE}"
+      ;;
+    *)
+      echo "Error: Unknown layout '${DEFAULT_LAYOUT}'"
+      exit 1
+      ;;
+  esac
+}
+
+# Main entry point
+main() {
+  local cmd="${1:-}"
+
+  # Check for --dry-run flag anywhere in args
+  for arg in "$@"; do
+    [[ "${arg}" == "--dry-run" ]] && DRY_RUN=true
+  done
+
+  # Skip preflight for help/version
+  case "${cmd}" in
+    help|--help|-h|version|--version|-v) ;;
+    *) preflight_check ;;
+  esac
+
+  case "${cmd}" in
+    help|--help|-h)
+      show_help
+      ;;
+    version|--version|-v)
+      echo "gsx v${GSX_VERSION}"
+      ;;
+    setup)
+      if [[ -n "${2:-}" && "${2}" != "--dry-run" ]]; then
+        setup_project "$2"
+      else
+        setup_wizard
+      fi
+      ;;
+    config)
+      show_config
+      ;;
+    list)
+      config_exists || { echo "Run 'gsx setup' first."; exit 1; }
+      parse_config
+      list_projects
+      ;;
+    uninstall)
+      do_uninstall
+      ;;
+    ""|--dry-run)
+      if ! config_exists; then
+        echo "Welcome to gsx! Let's set it up."
+        setup_wizard
+      else
+        check_for_updates
+        [[ "${DRY_RUN}" == false ]] && check_ghostty
+        parse_config
+        interactive_select || exit 1
+
+        local count=${#SELECTED_PROJECTS[@]}
+        if [[ "${DRY_RUN}" == true ]]; then
+          echo ""
+          echo "[dry-run] Would open ${count} project(s):"
+        else
+          echo ""
+          echo "Opening ${count} project(s)..."
+        fi
+
+        for dir in "${SELECTED_PROJECTS[@]}"; do
+          open_session "${dir}"
+        done
+
+        if [[ "${DRY_RUN}" == false ]]; then
+          echo ""
+          echo "You can close this terminal."
+        fi
+      fi
+      ;;
+    *)
+      config_exists || { echo "Run 'gsx setup' first."; exit 1; }
+      check_for_updates
+      [[ "${DRY_RUN}" == false ]] && check_ghostty
+      parse_config
+      local project_dir
+      project_dir=$(resolve_project_dir "${cmd}") || exit 1
+
+      if [[ "${DRY_RUN}" == true ]]; then
+        echo ""
+        echo "[dry-run] Would open:"
+      else
+        echo ""
+        echo "Opening..."
+      fi
+
+      open_session "${project_dir}"
+
+      if [[ "${DRY_RUN}" == false ]]; then
+        echo ""
+        echo "You can close this terminal."
+      fi
+      ;;
+  esac
+}
+
+main "$@"

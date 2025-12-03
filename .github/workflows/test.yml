@@ -1,0 +1,93 @@
+name: Test gsx
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify syntax
+        run: |
+          echo "=== Checking syntax ==="
+          for f in bin/gsx lib/*.zsh install.sh; do
+            zsh -n "$f" && echo "✓ $f" || exit 1
+          done
+
+      - name: Run install
+        run: |
+          echo "=== Running install ==="
+          ./install.sh
+          echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+
+      - name: Create test config
+        run: |
+          echo "=== Creating test config ==="
+          mkdir -p ~/.config/gsx
+          mkdir -p ~/Projects/test-project
+
+          cat > ~/.config/gsx/config.yaml << 'EOF'
+          projects_root: ~/Projects
+          default_layout: 3-col
+
+          default_commands:
+            left: "echo left"
+            middle: "echo middle"
+            right: ""
+          EOF
+
+      - name: Test gsx help
+        run: |
+          echo "=== Testing help ==="
+          ~/.local/bin/gsx help
+
+      - name: Test gsx version
+        run: |
+          echo "=== Testing version ==="
+          ~/.local/bin/gsx version
+
+      - name: Test gsx config
+        run: |
+          echo "=== Testing config ==="
+          ~/.local/bin/gsx config
+
+      - name: Test gsx list
+        run: |
+          echo "=== Testing list ==="
+          ~/.local/bin/gsx list
+
+      - name: Test gsx dry-run
+        run: |
+          echo "=== Testing dry-run ==="
+          ~/.local/bin/gsx test-project --dry-run
+
+      - name: Test gsx uninstall
+        run: |
+          echo "=== Testing uninstall ==="
+          echo "n" | ~/.local/bin/gsx uninstall
+
+          # Verify files removed
+          if [ -d ~/.local/share/gsx ]; then
+            echo "ERROR: gsx directory still exists"
+            exit 1
+          fi
+          echo "✓ Uninstall successful"
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "=== All tests passed ==="
+          echo "✓ Syntax check"
+          echo "✓ Install"
+          echo "✓ Help/version/config"
+          echo "✓ List projects"
+          echo "✓ Dry-run"
+          echo "✓ Uninstall"

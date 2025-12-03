@@ -1,0 +1,35 @@
+# gsx configuration
+# Location: ~/.config/gsx/config.yaml
+
+# Root directory containing your projects
+projects_root: ~/Projects
+
+# Default layout: 3-col, 2-col, or main+bottom
+default_layout: 3-col
+
+# Default commands for each pane (empty string = just shell)
+# Examples: "claude", "aider", "npm run dev", ""
+default_commands:
+  left: "claude"
+  middle: "claude"
+  right: ""
+
+# Per-project overrides (optional)
+# projects:
+#   myproject:
+#     layout: 2-col
+#     commands:
+#       left: "npm run dev"
+#       right: ""
+#
+#   another-project:
+#     commands:
+#       left: "aider"
+#       middle: "npm run watch"
+#       right: ""
+
+# Tips:
+# - Use "clear && claude" for a cleaner startup
+# - For unattended workflows, Claude supports --dangerously-skip-permissions
+#   (use with caution - this bypasses all confirmation prompts)
+# - Leave a pane empty ("") for a regular shell
