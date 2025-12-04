@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gsx — Ghostty Session Manager</title>
+  <meta name="description" content="Launch AI-ready development environments with one command. Pre-configured multi-pane terminals for Claude, Aider, and your workflow.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0a0a0b;
+      --bg-secondary: #111113;
+      --bg-elevated: #18181b;
+      --bg-hover: #232326;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #22d3ee;
+      --accent-dim: rgba(34, 211, 238, 0.15);
+      --accent-glow: rgba(34, 211, 238, 0.4);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(34, 211, 238, 0.3);
+      --success: #4ade80;
+      --font-sans: 'Instrument Sans', -apple-system, sans-serif;
+      --font-mono: 'Geist Mono', 'SF Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      background: rgba(10, 10, 11, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links .github-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links .github-link:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-accent);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 8rem 2rem 4rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      animation: fadeInUp 0.6s ease-out 0.1s both;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 3rem;
+      animation: fadeInUp 0.6s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Terminal Demo */
+    .terminal-demo {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      animation: fadeInUp 0.6s ease-out 0.3s both;
+    }
+
+    .terminal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 20px 50px -12px rgba(0,0,0,0.5),
+        0 0 100px var(--accent-dim);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28ca41; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      min-height: 120px;
+    }
+
+    .terminal-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .terminal-prompt {
+      color: var(--accent);
+      margin-right: 0.75rem;
+    }
+
+    .terminal-command {
+      color: var(--text-primary);
+    }
+
+    .terminal-output {
+      color: var(--text-secondary);
+      margin-left: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 10px;
+      height: 1.2em;
+      background: var(--accent);
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* CTA Buttons */
+    .cta-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 2rem;
+      animation: fadeInUp 0.6s ease-out 0.4s both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.75rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--text-primary);
+      color: var(--bg-primary);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255,255,255,0.15);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-accent);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 8rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-header h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.5rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* Layouts Section */
+    .layouts {
+      padding: 4rem 2rem 8rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .layouts-preview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .layout-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .layout-card:hover {
+      border-color: var(--border-accent);
+    }
+
+    .layout-visual {
+      display: grid;
+      gap: 4px;
+      height: 100px;
+      margin-bottom: 1rem;
+      padding: 8px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+    }
+
+    .layout-3col .layout-visual {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .layout-2col .layout-visual {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .layout-main-bottom .layout-visual {
+      grid-template-rows: 2fr 1fr;
+    }
+
+    .layout-pane {
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .layout-pane.ai {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--border-accent);
+    }
+
+    .layout-card h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .layout-card p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Install Section */
+    .install {
+      padding: 8rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .install-content {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .install h2 {
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .install > .install-content > p {
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+    }
+
+    .install-methods {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      text-align: left;
+    }
+
+    .install-method {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .install-method h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .install-method p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .code-block {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-block code {
+      color: var(--text-primary);
+    }
+
+    .code-block .comment {
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    footer {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    footer .logo {
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    footer p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav {
+        padding: 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .nav-links a:not(.github-link) {
+        display: none;
+      }
+
+      .hero {
+        padding: 7rem 1.5rem 3rem;
+      }
+
+      .terminal-body {
+        padding: 1rem;
+        font-size: 0.8rem;
+      }
+
+      .layouts-preview {
+        grid-template-columns: 1fr;
+      }
+
+      .features {
+        padding: 4rem 1.5rem;
+      }
+
+      .install {
+        padding: 4rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <a href="#" class="logo">
+        <div class="logo-icon">▦</div>
+        gsx
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/minorole/gsx" class="github-link" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Built for Ghostty + AI workflows
+    </div>
+
+    <h1>One command.<br><span>Ready to code.</span></h1>
+
+    <p>
+      Stop manually splitting panes and launching AI assistants.
+      gsx creates your perfect development environment instantly.
+    </p>
+
+    <div class="terminal-demo">
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">ghostty — zsh</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line">
+            <span class="terminal-prompt">~</span>
+            <span class="terminal-command" id="typed-command"></span>
+            <span class="typing-cursor" id="cursor"></span>
+          </div>
+          <div class="terminal-output" id="terminal-output"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-group">
+      <a href="#install" class="btn btn-primary">Get Started</a>
+      <a href="https://github.com/minorole/gsx" class="btn btn-secondary" target="_blank">
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="section-header">
+      <h2>Why gsx?</h2>
+      <p>Designed for developers who code with AI assistants every day.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Setup</h3>
+        <p>Launch fully-configured multi-pane environments with a single command. No more manual pane splitting, directory navigation, or tool launching.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI-First Design</h3>
+        <p>Built specifically for Claude, Aider, and other AI coding assistants. Pre-configured layouts that maximize your AI-human collaboration.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>Project Configs</h3>
+        <p>Set global defaults and per-project overrides. Different layouts, commands, and tools for each project — all in simple YAML.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Interactive Picker</h3>
+        <p>Run <code>gsx</code> without arguments to get an interactive project picker. Select multiple projects to open simultaneously.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Flexible Layouts</h3>
+        <p>Choose from 3-column, 2-column, or main+bottom layouts. Each optimized for different workflows and screen sizes.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Easy Setup Wizard</h3>
+        <p>Interactive configuration wizard gets you started in seconds. Detects your projects directory and sets sensible defaults.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="layouts">
+    <div class="section-header">
+      <h2>Layouts</h2>
+      <p>Choose the perfect arrangement for your workflow.</p>
+    </div>
+
+    <div class="layouts-preview">
+      <div class="layout-card layout-3col">
+        <div class="layout-visual">
+          <div class="layout-pane ai">claude</div>
+          <div class="layout-pane ai">aider</div>
+          <div class="layout-pane">shell</div>
+        </div>
+        <h4>3-Column</h4>
+        <p>Heavy AI-assisted coding</p>
+      </div>
+
+      <div class="layout-card layout-2col">
+        <div class="layout-visual">
+          <div class="layout-pane ai">claude</div>
+          <div class="layout-pane">shell</div>
+        </div>
+        <h4>2-Column</h4>
+        <p>Balanced workflow</p>
+      </div>
+
+      <div class="layout-card layout-main-bottom">
+        <div class="layout-visual">
+          <div class="layout-pane ai">claude</div>
+          <div class="layout-pane">shell</div>
+        </div>
+        <h4>Main + Bottom</h4>
+        <p>AI-focused interface</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="install-content">
+      <h2>Installation</h2>
+      <p>Get gsx running in under a minute.</p>
+
+      <div class="install-methods">
+        <div class="install-method">
+          <h3>🍺 Homebrew</h3>
+          <p>Recommended for most users</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>brew install minorole/tap/gsx</code>
+          </div>
+        </div>
+
+        <div class="install-method">
+          <h3>📦 From Source</h3>
+          <p>Clone and install manually</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code><span class="comment"># Clone the repo</span>
+git clone https://github.com/minorole/gsx.git
+cd gsx
+
+<span class="comment"># Run the installer</span>
+./install.sh</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="#" class="logo">
+      <div class="logo-icon">▦</div>
+      gsx
+    </a>
+    <p>
+      Made for the AI-assisted coding era.<br>
+      <a href="https://github.com/minorole/gsx">GitHub</a> ·
+      <a href="https://github.com/minorole/gsx/issues">Issues</a> ·
+      <a href="https://github.com/minorole/gsx/blob/main/LICENSE">MIT License</a>
+    </p>
+  </footer>
+
+  <script>
+    // Typing animation
+    const commands = [
+      { cmd: 'gsx myproject', output: '✓ Opening myproject with 3-column layout...' },
+      { cmd: 'gsx webapp --layout 2col', output: '✓ Opening webapp with 2-column layout...' },
+      { cmd: 'gsx', output: '? Select projects to open:\n  ◉ myproject\n  ◯ webapp\n  ◯ api-server' }
+    ];
+
+    let commandIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let isPaused = false;
+
+    const typedCommand = document.getElementById('typed-command');
+    const terminalOutput = document.getElementById('terminal-output');
+    const cursor = document.getElementById('cursor');
+
+    function type() {
+      const current = commands[commandIndex];
+
+      if (isPaused) {
+        setTimeout(type, 2000);
+        isPaused = false;
+        isDeleting = true;
+        return;
+      }
+
+      if (isDeleting) {
+        typedCommand.textContent = current.cmd.substring(0, charIndex - 1);
+        charIndex--;
+
+        if (charIndex === 0) {
+          isDeleting = false;
+          terminalOutput.innerHTML = '';
+          commandIndex = (commandIndex + 1) % commands.length;
+        }
+        setTimeout(type, 30);
+      } else {
+        typedCommand.textContent = current.cmd.substring(0, charIndex + 1);
+        charIndex++;
+
+        if (charIndex === current.cmd.length) {
+          terminalOutput.innerHTML = current.output.replace(/\n/g, '<br>');
+          isPaused = true;
+        }
+        setTimeout(type, 80);
+      }
+    }
+
+    setTimeout(type, 1000);
+
+    // Copy code functionality
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement;
+      const code = codeBlock.querySelector('code').textContent;
+      navigator.clipboard.writeText(code.replace(/# .*\n/g, '').trim());
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+  </script>
+</body>
+</html>
