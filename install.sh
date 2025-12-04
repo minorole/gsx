@@ -17,6 +17,15 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# Detect non-interactive mode
+NON_INTERACTIVE=false
+if [[ ! -t 0 ]] || [[ -n "${CI:-}" ]]; then
+  NON_INTERACTIVE=true
+fi
+if [[ "${1:-}" == "-y" ]] || [[ "${1:-}" == "--yes" ]]; then
+  NON_INTERACTIVE=true
+fi
+
 echo ""
 echo -e "${BOLD}gsx installer v${GSX_VERSION}${NC}"
 echo "========================="
@@ -43,13 +52,18 @@ if ! command -v ghostty &>/dev/null && [[ ! -d "/Applications/Ghostty.app" ]]; t
   echo "gsx requires Ghostty terminal to work."
   echo -e "Download from: ${BLUE}https://ghostty.org${NC}"
   echo ""
-  printf "Continue installation anyway? [y/N]: "
-  read -r continue_install
-  if [[ ! "${continue_install}" =~ ^[Yy]$ ]]; then
-    echo "Installation cancelled. Install Ghostty first, then run this again."
-    exit 0
+  if [[ "${NON_INTERACTIVE}" == "true" ]]; then
+    echo "(Continuing anyway - non-interactive mode)"
+    echo ""
+  else
+    printf "Continue installation anyway? [y/N]: "
+    read -r continue_install
+    if [[ ! "${continue_install}" =~ ^[Yy]$ ]]; then
+      echo "Installation cancelled. Install Ghostty first, then run this again."
+      exit 0
+    fi
+    echo ""
   fi
-  echo ""
 fi
 
 # Create directories
@@ -103,24 +117,33 @@ echo "Add your terminal app (Terminal.app, iTerm, etc.) to the list."
 echo ""
 
 # Offer to run setup
-printf "Run ${BOLD}gsx setup${NC} now? [Y/n]: "
-read -r run_setup
-
-if [[ ! "${run_setup}" =~ ^[Nn]$ ]]; then
-  echo ""
-  "${GSX_HOME}/gsx" setup
-
-  # Remind about PATH if needed
-  if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
-    echo ""
-    echo -e "${RED}Restart${NC} your terminal or run ${BOLD}source ~/.zshrc${NC} to use ${BOLD}gsx${NC} command"
-  fi
-else
-  echo ""
+if [[ "${NON_INTERACTIVE}" == "true" ]]; then
   echo "Next steps:"
   echo -e "  1. Run ${BOLD}gsx setup${NC} to configure"
   echo -e "  2. Run ${BOLD}gsx${NC} to launch sessions"
   echo ""
   echo -e "More info: ${BLUE}https://github.com/minorole/gsx${NC}"
   echo ""
+else
+  printf "Run ${BOLD}gsx setup${NC} now? [Y/n]: "
+  read -r run_setup
+
+  if [[ ! "${run_setup}" =~ ^[Nn]$ ]]; then
+    echo ""
+    "${GSX_HOME}/gsx" setup
+
+    # Remind about PATH if needed
+    if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
+      echo ""
+      echo -e "${RED}Restart${NC} your terminal or run ${BOLD}source ~/.zshrc${NC} to use ${BOLD}gsx${NC} command"
+    fi
+  else
+    echo ""
+    echo "Next steps:"
+    echo -e "  1. Run ${BOLD}gsx setup${NC} to configure"
+    echo -e "  2. Run ${BOLD}gsx${NC} to launch sessions"
+    echo ""
+    echo -e "More info: ${BLUE}https://github.com/minorole/gsx${NC}"
+    echo ""
+  fi
 fi
