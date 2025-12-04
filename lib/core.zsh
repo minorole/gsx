@@ -1,7 +1,7 @@
 # gsx core
 # Version, constants, and preflight checks
 
-GSX_VERSION="0.1.0"
+GSX_VERSION="0.1.1"
 
 # Preflight checks (macOS, osascript)
 preflight_check() {

@@ -4,6 +4,11 @@
 GSX_REPO="minorole/gsx"
 GSX_UPDATE_CACHE="${HOME}/.cache/gsx/update-check"
 
+# Validate version string (basic semver: X.Y.Z with optional pre-release)
+is_valid_version() {
+  [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]
+}
+
 # Check for updates (runs in background, caches for 24 hours)
 check_for_updates() {
   # Skip if no internet commands available
@@ -25,7 +30,10 @@ check_for_updates() {
     if (( cache_age < cache_max_age )); then
       # Cache is fresh, show cached result if update available
       local cached_version=$(tail -1 "${GSX_UPDATE_CACHE}" 2>/dev/null)
-      if [[ -n "${cached_version}" && "${cached_version}" != "${GSX_VERSION}" ]]; then
+      # Validate cached version; clear corrupted cache
+      if ! is_valid_version "${cached_version}"; then
+        rm -f "${GSX_UPDATE_CACHE}"
+      elif [[ "${cached_version}" != "${GSX_VERSION}" ]]; then
         show_update_notice "${cached_version}"
       fi
       return 0
@@ -36,17 +44,17 @@ check_for_updates() {
   {
     local latest=$(curl -sf --max-time 3 \
       "https://api.github.com/repos/${GSX_REPO}/releases/latest" 2>/dev/null \
-      | grep '"tag_name"' | head -1 | sed 's/.*"v\?\([^"]*\)".*/\1/')
+      | grep '"tag_name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
     # If no releases, try tags
     if [[ -z "${latest}" ]]; then
       latest=$(curl -sf --max-time 3 \
         "https://api.github.com/repos/${GSX_REPO}/tags" 2>/dev/null \
-        | grep '"name"' | head -1 | sed 's/.*"v\?\([^"]*\)".*/\1/')
+        | grep '"name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
     fi
 
-    # Save to cache
-    if [[ -n "${latest}" ]]; then
+    # Save to cache (only if valid version)
+    if is_valid_version "${latest}"; then
       echo "${now}" > "${GSX_UPDATE_CACHE}"
       echo "${latest}" >> "${GSX_UPDATE_CACHE}"
     fi

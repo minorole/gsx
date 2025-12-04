@@ -1,0 +1,50 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release info
+        id: release
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"  # Strip leading 'v'
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
+
+          # Download and calculate SHA256
+          SHA256=$(curl -sL "${TARBALL_URL}" | sha256sum | cut -d' ' -f1)
+          echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: minorole/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update formula
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          SHA256="${{ steps.release.outputs.sha256 }}"
+
+          # Update version and sha256 in formula
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" Formula/gsx.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Formula/gsx.rb
+
+          # Update URL if it contains version
+          sed -i "s|/v[0-9]*\.[0-9]*\.[0-9]*\.tar\.gz|/v${VERSION}.tar.gz|" Formula/gsx.rb
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/gsx.rb
+          git diff --cached --quiet || git commit -m "gsx ${VERSION}"
+          git push
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
