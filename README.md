@@ -20,6 +20,12 @@ No more manually opening terminals, splitting panes, cd-ing to directories, and 
 
 ## Installation
 
+### Homebrew
+
+```bash
+brew install minorole/tap/gsx
+```
+
 ### From source
 
 ```bash
