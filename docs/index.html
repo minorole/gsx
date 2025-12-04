@@ -9,25 +9,35 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-primary: #0a0a0b;
-      --bg-secondary: #111113;
-      --bg-elevated: #18181b;
-      --bg-hover: #232326;
-      --text-primary: #fafafa;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      --accent: #22d3ee;
-      --accent-dim: rgba(34, 211, 238, 0.15);
-      --accent-glow: rgba(34, 211, 238, 0.4);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(34, 211, 238, 0.3);
-      --success: #4ade80;
-      --font-sans: 'Instrument Sans', -apple-system, sans-serif;
-      --font-mono: 'Geist Mono', 'SF Mono', monospace;
+      --bg-deep: #0c0b09;
+      --bg-primary: #121110;
+      --bg-elevated: #1a1917;
+      --bg-card: #1f1e1b;
+      --bg-hover: #262520;
+
+      --text-primary: #f5f4f0;
+      --text-secondary: #a09d94;
+      --text-muted: #6b6860;
+
+      --accent: #d4a855;
+      --accent-soft: rgba(212, 168, 85, 0.12);
+      --accent-glow: rgba(212, 168, 85, 0.25);
+      --accent-hover: #e4b865;
+
+      --success: #7cb97c;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(212, 168, 85, 0.25);
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     * {
@@ -41,24 +51,29 @@
     }
 
     body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
+      font-family: var(--font-body);
+      background: var(--bg-deep);
       color: var(--text-primary);
       line-height: 1.6;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Subtle grid background */
+    /* Grain overlay */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 60px 60px;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.03;
       pointer-events: none;
-      z-index: -1;
+      z-index: 1000;
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     /* Navigation */
@@ -68,14 +83,18 @@
       left: 0;
       right: 0;
       z-index: 100;
-      padding: 1rem 2rem;
-      background: rgba(10, 10, 11, 0.8);
-      backdrop-filter: blur(12px);
+      padding: 1.25rem 2.5rem;
+      transition: all 0.4s var(--ease-out-quart);
+    }
+
+    nav.scrolled {
+      background: rgba(12, 11, 9, 0.85);
+      backdrop-filter: blur(20px) saturate(1.2);
       border-bottom: 1px solid var(--border);
     }
 
     nav .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -84,59 +103,99 @@
 
     .logo {
       font-family: var(--font-mono);
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--text-primary);
       text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      letter-spacing: -0.02em;
     }
 
-    .logo-icon {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 3px;
+      transform: rotate(-5deg);
     }
 
-    .logo-icon svg {
-      width: 100%;
-      height: 100%;
+    .logo-mark span {
+      background: var(--accent);
+      border-radius: 2px;
+      transition: all 0.3s var(--ease-out-expo);
     }
 
-    nav a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.2s;
+    .logo-mark span:nth-child(1) {
+      grid-row: span 2;
+      opacity: 1;
     }
 
-    nav a:hover {
-      color: var(--text-primary);
+    .logo-mark span:nth-child(2) {
+      opacity: 0.5;
+    }
+
+    .logo-mark span:nth-child(3) {
+      opacity: 0.3;
+    }
+
+    .logo:hover .logo-mark span {
+      opacity: 1;
     }
 
     .nav-links {
       display: flex;
-      gap: 2rem;
+      gap: 3rem;
       align-items: center;
     }
 
-    .nav-links .github-link {
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a:not(.github-link):hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a:not(.github-link)::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s var(--ease-out-expo);
+    }
+
+    .nav-links a:not(.github-link):hover::after {
+      width: 100%;
+    }
+
+    .github-link {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
-      background: var(--bg-elevated);
+      background: transparent;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: all 0.25s var(--ease-out-quart);
     }
 
-    .nav-links .github-link:hover {
-      background: var(--bg-hover);
+    .github-link:hover {
+      background: var(--bg-elevated);
       border-color: var(--border-accent);
+      color: var(--text-primary);
     }
 
     /* Hero Section */
@@ -145,300 +204,404 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
-      padding: 8rem 2rem 4rem;
-      text-align: center;
+      padding: 10rem 2.5rem 6rem;
       position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+
+    .hero-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Ambient glow */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      right: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      filter: blur(80px);
+      opacity: 0.4;
+      pointer-events: none;
     }
 
     .hero::after {
       content: '';
       position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+      bottom: 20%;
+      left: 10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(212, 168, 85, 0.08) 0%, transparent 70%);
+      filter: blur(60px);
       pointer-events: none;
-      z-index: -1;
     }
 
-    .badge {
+    .eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
+      gap: 0.625rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
       margin-bottom: 2rem;
-      animation: fadeInUp 0.6s ease-out;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.1s forwards;
     }
 
-    .badge-dot {
+    .eyebrow-dot {
       width: 6px;
       height: 6px;
       background: var(--success);
       border-radius: 50%;
-      animation: pulse 2s infinite;
+      animation: pulse 2.5s ease-in-out infinite;
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
     }
 
     .hero h1 {
-      font-size: clamp(2.5rem, 8vw, 5rem);
-      font-weight: 700;
-      line-height: 1.1;
-      margin-bottom: 1.5rem;
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 7vw, 5.5rem);
+      font-weight: 500;
+      line-height: 1.05;
       letter-spacing: -0.03em;
-      animation: fadeInUp 0.6s ease-out 0.1s both;
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.2s forwards;
     }
 
-    .hero h1 span {
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
     }
 
-    .hero p {
-      font-size: clamp(1.1rem, 2vw, 1.35rem);
+    .hero-description {
+      font-size: 1.125rem;
       color: var(--text-secondary);
-      max-width: 600px;
-      margin-bottom: 3rem;
-      animation: fadeInUp 0.6s ease-out 0.2s both;
+      max-width: 440px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.35s forwards;
     }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
+    @keyframes fadeUp {
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
 
-    /* Vertical Carousel */
-    .carousel-container {
-      display: inline-flex;
-      align-items: center;
-      height: 1.2em;
-      overflow: hidden;
-      vertical-align: bottom;
-    }
-
-    .carousel-track {
-      display: flex;
-      flex-direction: column;
-      animation: carouselSlide 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
-
-    .carousel-item {
-      height: 1.2em;
-      display: flex;
-      align-items: center;
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      white-space: nowrap;
-    }
-
-    @keyframes carouselSlide {
-      0%, 20% {
-        transform: translateY(0);
-      }
-      25%, 45% {
-        transform: translateY(-1.2em);
-      }
-      50%, 70% {
-        transform: translateY(-2.4em);
-      }
-      75%, 95% {
-        transform: translateY(-3.6em);
-      }
-      100% {
-        transform: translateY(-4.8em);
-      }
-    }
-
-    /* Demo GIF */
-    .demo-container {
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-      animation: fadeInUp 0.6s ease-out 0.3s both;
-    }
-
-    .demo-gif {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,0.05),
-        0 20px 50px -12px rgba(0,0,0,0.5),
-        0 0 100px var(--accent-dim);
-    }
-
     /* CTA Buttons */
     .cta-group {
       display: flex;
       gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 2rem;
-      animation: fadeInUp 0.6s ease-out 0.4s both;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.45s forwards;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       padding: 0.875rem 1.75rem;
-      font-size: 0.95rem;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
       font-weight: 500;
       text-decoration: none;
-      border-radius: 10px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: all 0.25s var(--ease-out-quart);
       cursor: pointer;
       border: none;
-      font-family: inherit;
     }
 
     .btn-primary {
-      background: var(--text-primary);
-      color: var(--bg-primary);
+      background: var(--accent);
+      color: var(--bg-deep);
     }
 
     .btn-primary:hover {
+      background: var(--accent-hover);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(255,255,255,0.15);
+      box-shadow: 0 8px 30px var(--accent-glow);
     }
 
     .btn-secondary {
-      background: var(--bg-elevated);
+      background: transparent;
       color: var(--text-primary);
       border: 1px solid var(--border);
     }
 
     .btn-secondary:hover {
-      background: var(--bg-hover);
+      background: var(--bg-elevated);
       border-color: var(--border-accent);
+    }
+
+    /* Demo Area */
+    .hero-demo {
+      position: relative;
+      opacity: 0;
+      transform: translateY(40px) scale(0.98);
+      animation: fadeUpScale 1s var(--ease-out-expo) 0.5s forwards;
+    }
+
+    @keyframes fadeUpScale {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .demo-frame {
+      position: relative;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 30px 80px -20px rgba(0,0,0,0.6),
+        0 0 120px var(--accent-soft);
+    }
+
+    .demo-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .demo-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .demo-titlebar span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+    }
+
+    .demo-titlebar span:first-child {
+      background: #e5534b;
+      opacity: 0.8;
+    }
+
+    .demo-titlebar span:nth-child(2) {
+      background: #d4a855;
+      opacity: 0.8;
+    }
+
+    .demo-titlebar span:nth-child(3) {
+      background: #7cb97c;
+      opacity: 0.8;
+    }
+
+    .demo-gif {
+      width: 100%;
+      display: block;
+    }
+
+    /* Floating elements */
+    .float-badge {
+      position: absolute;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      opacity: 0;
+      animation: floatIn 0.8s var(--ease-out-expo) forwards;
+    }
+
+    .float-badge.top-right {
+      top: -20px;
+      right: -20px;
+      animation-delay: 0.8s;
+    }
+
+    .float-badge.bottom-left {
+      bottom: 40px;
+      left: -30px;
+      animation-delay: 1s;
+    }
+
+    .float-badge strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     /* Features Section */
     .features {
-      padding: 8rem 2rem;
-      max-width: 1200px;
+      padding: 10rem 2.5rem;
+      max-width: 1400px;
       margin: 0 auto;
+      position: relative;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
     }
 
     .section-header {
-      text-align: center;
-      margin-bottom: 4rem;
+      margin-bottom: 5rem;
     }
 
     .section-header h2 {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
-      margin-bottom: 1rem;
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 3.5rem);
+      font-weight: 500;
       letter-spacing: -0.02em;
-    }
-
-    .section-header p {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      max-width: 500px;
-      margin: 0 auto;
+      line-height: 1.15;
+      max-width: 600px;
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
     }
 
     .feature-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      transition: all 0.3s;
+      background: var(--bg-primary);
+      padding: 2.5rem;
+      transition: all 0.4s var(--ease-out-quart);
+      position: relative;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-out-quart);
     }
 
     .feature-card:hover {
-      border-color: var(--border-accent);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      background: var(--bg-elevated);
     }
 
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--accent-dim);
-      border: 1px solid var(--border-accent);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.25rem;
-      font-size: 1.5rem;
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-number {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 400;
+      color: var(--accent);
+      opacity: 0.3;
+      margin-bottom: 1.5rem;
+      line-height: 1;
     }
 
     .feature-card h3 {
-      font-size: 1.25rem;
+      font-family: var(--font-body);
+      font-size: 1.125rem;
       font-weight: 600;
       margin-bottom: 0.75rem;
+      position: relative;
     }
 
     .feature-card p {
       color: var(--text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.7;
+      font-size: 0.925rem;
+      line-height: 1.65;
+      position: relative;
     }
 
     /* Layouts Section */
     .layouts {
-      padding: 4rem 2rem 8rem;
-      max-width: 1200px;
+      padding: 6rem 2.5rem 10rem;
+      max-width: 1400px;
       margin: 0 auto;
     }
 
-    .layouts-preview {
+    .layouts-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-top: 3rem;
+      gap: 2rem;
+      margin-top: 4rem;
     }
 
     .layout-card {
-      background: var(--bg-secondary);
+      background: var(--bg-primary);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-      transition: all 0.3s;
+      padding: 2rem;
+      transition: all 0.4s var(--ease-out-quart);
+      cursor: default;
     }
 
     .layout-card:hover {
       border-color: var(--border-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px -20px rgba(0,0,0,0.4);
     }
 
     .layout-visual {
       display: grid;
-      gap: 4px;
-      height: 100px;
-      margin-bottom: 1rem;
-      padding: 8px;
-      background: var(--bg-primary);
+      gap: 6px;
+      height: 120px;
+      margin-bottom: 1.5rem;
+      padding: 12px;
+      background: var(--bg-deep);
       border-radius: 8px;
     }
 
@@ -451,7 +614,7 @@
     }
 
     .layout-main-bottom .layout-visual {
-      grid-template-rows: 2fr 1fr;
+      grid-template-rows: 1.5fr 1fr;
     }
 
     .layout-pane {
@@ -463,87 +626,122 @@
       font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text-muted);
+      letter-spacing: 0.05em;
+      transition: all 0.3s;
     }
 
     .layout-pane.ai {
-      background: var(--accent-dim);
+      background: var(--accent-soft);
       color: var(--accent);
       border: 1px solid var(--border-accent);
     }
 
+    .layout-card:hover .layout-pane.ai {
+      background: rgba(212, 168, 85, 0.18);
+    }
+
     .layout-card h4 {
-      font-size: 0.95rem;
+      font-family: var(--font-body);
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.375rem;
     }
 
     .layout-card p {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
     }
 
     /* Install Section */
     .install {
-      padding: 8rem 2rem;
-      background: var(--bg-secondary);
+      padding: 10rem 2.5rem;
+      background: var(--bg-primary);
       border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .install::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+      filter: blur(100px);
+      opacity: 0.3;
+      pointer-events: none;
     }
 
     .install-content {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
+      position: relative;
+    }
+
+    .install .section-header {
       text-align: center;
+      margin-bottom: 4rem;
     }
 
-    .install h2 {
-      font-size: clamp(2rem, 4vw, 2.5rem);
-      font-weight: 700;
-      margin-bottom: 1rem;
-      letter-spacing: -0.02em;
+    .install .section-header h2 {
+      max-width: none;
+      margin: 0 auto;
     }
 
-    .install > .install-content > p {
+    .install .section-header p {
       color: var(--text-secondary);
-      margin-bottom: 3rem;
+      font-size: 1.1rem;
+      margin-top: 1rem;
     }
 
     .install-methods {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      text-align: left;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
     }
 
     .install-method {
-      background: var(--bg-primary);
+      background: var(--bg-deep);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 2rem;
+      transition: all 0.3s var(--ease-out-quart);
+    }
+
+    .install-method:hover {
+      border-color: var(--border-accent);
     }
 
     .install-method h3 {
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.375rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.625rem;
     }
 
-    .install-method p {
+    .install-method h3 span {
+      font-size: 1.25rem;
+    }
+
+    .install-method > p {
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
 
     .code-block {
       background: var(--bg-elevated);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1rem;
+      padding: 1.125rem 1.25rem;
       font-family: var(--font-mono);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       overflow-x: auto;
       position: relative;
     }
@@ -558,57 +756,130 @@
 
     .copy-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 10px;
+      right: 10px;
       background: var(--bg-hover);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .copy-btn:hover {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border-color: var(--border-accent);
     }
 
     /* Footer */
     footer {
-      padding: 4rem 2rem;
-      text-align: center;
+      padding: 5rem 2.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    footer .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
     }
 
     footer .logo {
-      justify-content: center;
-      margin-bottom: 1.5rem;
+      opacity: 0.6;
+      transition: opacity 0.2s;
     }
 
-    footer p {
+    footer .logo:hover {
+      opacity: 1;
+    }
+
+    .footer-tagline {
+      font-size: 0.875rem;
       color: var(--text-muted);
-      font-size: 0.9rem;
+      padding-left: 2rem;
+      border-left: 1px solid var(--border);
     }
 
-    footer a {
-      color: var(--text-secondary);
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-links a {
+      font-size: 0.875rem;
+      color: var(--text-muted);
       text-decoration: none;
       transition: color 0.2s;
     }
 
-    footer a:hover {
+    .footer-links a:hover {
       color: var(--accent);
     }
 
     /* Responsive */
+    @media (max-width: 1100px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+        text-align: center;
+      }
+
+      .hero-text {
+        order: 1;
+      }
+
+      .hero-demo {
+        order: 2;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .cta-group {
+        justify-content: center;
+      }
+
+      .float-badge {
+        display: none;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layouts-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
     @media (max-width: 768px) {
       nav {
-        padding: 1rem;
+        padding: 1rem 1.5rem;
       }
 
       .nav-links {
-        gap: 1rem;
+        gap: 1.5rem;
       }
 
       .nav-links a:not(.github-link) {
@@ -616,19 +887,36 @@
       }
 
       .hero {
-        padding: 7rem 1.5rem 3rem;
+        padding: 8rem 1.5rem 4rem;
       }
 
-      .layouts-preview {
-        grid-template-columns: 1fr;
-      }
-
-      .features {
-        padding: 4rem 1.5rem;
+      .features,
+      .layouts {
+        padding: 5rem 1.5rem;
       }
 
       .install {
-        padding: 4rem 1.5rem;
+        padding: 5rem 1.5rem;
+      }
+
+      .install-methods {
+        grid-template-columns: 1fr;
+      }
+
+      footer .container {
+        flex-direction: column;
+        gap: 2rem;
+        text-align: center;
+      }
+
+      .footer-left {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .footer-tagline {
+        padding-left: 0;
+        border-left: none;
       }
     }
   </style>
@@ -637,27 +925,19 @@
   <nav>
     <div class="container">
       <a href="#" class="logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#22d3ee"/>
-                <stop offset="100%" stop-color="#a78bfa"/>
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGrad)" opacity="0.15"/>
-            <rect x="4" y="4" width="10" height="24" rx="2" fill="url(#logoGrad)"/>
-            <rect x="16" y="4" width="12" height="11" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-            <rect x="16" y="17" width="12" height="11" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
-          </svg>
+        <div class="logo-mark">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
         gsx
       </a>
       <div class="nav-links">
         <a href="#features">Features</a>
+        <a href="#layouts">Layouts</a>
         <a href="#install">Install</a>
         <a href="https://github.com/minorole/gsx" class="github-link" target="_blank">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
           </svg>
           GitHub
@@ -667,82 +947,101 @@
   </nav>
 
   <section class="hero">
-    <div class="badge">
-      <span class="badge-dot"></span>
-      Built for Ghostty + AI workflows
-    </div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          For Ghostty + AI Workflows
+        </div>
 
-    <h1>One command.<br><span class="carousel-container"><span class="carousel-track"><span class="carousel-item">Ready to code.</span><span class="carousel-item">Launch Claude.</span><span class="carousel-item">Split panes.</span><span class="carousel-item">Ship faster.</span><span class="carousel-item">Ready to code.</span></span></span></h1>
+        <h1>One command.<br><em>Infinite focus.</em></h1>
 
-    <p>
-      Stop manually splitting panes and launching AI assistants.
-      gsx creates your perfect development environment instantly.
-    </p>
+        <p class="hero-description">
+          Stop splitting panes manually. Launch perfectly configured
+          development environments with Claude, Aider, or any AI assistant
+          in a single keystroke.
+        </p>
 
-    <div class="demo-container">
-      <img src="demo.gif" alt="gsx demo - launching a multi-pane terminal environment" class="demo-gif">
-    </div>
+        <div class="cta-group">
+          <a href="#install" class="btn btn-primary">Get Started</a>
+          <a href="https://github.com/minorole/gsx" class="btn btn-secondary" target="_blank">
+            View Source
+          </a>
+        </div>
+      </div>
 
-    <div class="cta-group">
-      <a href="#install" class="btn btn-primary">Get Started</a>
-      <a href="https://github.com/minorole/gsx" class="btn btn-secondary" target="_blank">
-        View on GitHub
-      </a>
+      <div class="hero-demo">
+        <div class="demo-frame">
+          <div class="demo-titlebar">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <img src="demo.gif" alt="gsx demo - launching a multi-pane terminal environment" class="demo-gif">
+        </div>
+
+        <div class="float-badge top-right">
+          <strong>gsx</strong> my-project
+        </div>
+        <div class="float-badge bottom-left">
+          3 panes <strong>ready</strong>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="features" id="features">
     <div class="section-header">
-      <h2>Why gsx?</h2>
-      <p>Designed for developers who code with AI assistants every day.</p>
+      <div class="section-label">Capabilities</div>
+      <h2>Designed for developers who code with AI every day.</h2>
     </div>
 
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">⚡</div>
+        <div class="feature-number">01</div>
         <h3>Instant Setup</h3>
-        <p>Launch fully-configured multi-pane environments with a single command. No more manual pane splitting, directory navigation, or tool launching.</p>
+        <p>Launch fully-configured multi-pane environments with a single command. No manual splitting, no directory navigation, no tool launching.</p>
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon">🤖</div>
+        <div class="feature-number">02</div>
         <h3>AI-First Design</h3>
-        <p>Built specifically for Claude, Aider, and other AI coding assistants. Pre-configured layouts that maximize your AI-human collaboration.</p>
+        <p>Built specifically for Claude, Aider, and modern AI coding assistants. Layouts optimized for human-AI collaboration.</p>
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon">⚙️</div>
+        <div class="feature-number">03</div>
         <h3>Project Configs</h3>
-        <p>Set global defaults and per-project overrides. Different layouts, commands, and tools for each project — all in simple YAML.</p>
+        <p>Global defaults and per-project overrides. Different layouts, commands, and tools for each project in simple YAML.</p>
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon">📋</div>
+        <div class="feature-number">04</div>
         <h3>Interactive Picker</h3>
-        <p>Run <code>gsx</code> without arguments to get an interactive project picker. Select multiple projects to open simultaneously.</p>
+        <p>Run gsx without arguments for an interactive project picker. Select multiple projects to open simultaneously.</p>
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon">🎨</div>
+        <div class="feature-number">05</div>
         <h3>Flexible Layouts</h3>
-        <p>Choose from 3-column, 2-column, or main+bottom layouts. Each optimized for different workflows and screen sizes.</p>
+        <p>Choose from 3-column, 2-column, or main+bottom layouts. Each optimized for different workflows and displays.</p>
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon">🔧</div>
-        <h3>Easy Setup Wizard</h3>
-        <p>Interactive configuration wizard gets you started in seconds. Detects your projects directory and sets sensible defaults.</p>
+        <div class="feature-number">06</div>
+        <h3>Setup Wizard</h3>
+        <p>Interactive configuration gets you started in seconds. Auto-detects projects directory and sets sensible defaults.</p>
       </div>
     </div>
   </section>
 
-  <section class="layouts">
+  <section class="layouts" id="layouts">
     <div class="section-header">
-      <h2>Layouts</h2>
-      <p>Choose the perfect arrangement for your workflow.</p>
+      <div class="section-label">Arrangements</div>
+      <h2>Layouts for every workflow.</h2>
     </div>
 
-    <div class="layouts-preview">
+    <div class="layouts-grid">
       <div class="layout-card layout-3col">
         <div class="layout-visual">
           <div class="layout-pane ai">claude</div>
@@ -750,7 +1049,7 @@
           <div class="layout-pane">shell</div>
         </div>
         <h4>3-Column</h4>
-        <p>Heavy AI-assisted coding</p>
+        <p>For heavy AI-assisted coding sessions</p>
       </div>
 
       <div class="layout-card layout-2col">
@@ -759,7 +1058,7 @@
           <div class="layout-pane">shell</div>
         </div>
         <h4>2-Column</h4>
-        <p>Balanced workflow</p>
+        <p>Balanced development workflow</p>
       </div>
 
       <div class="layout-card layout-main-bottom">
@@ -768,19 +1067,22 @@
           <div class="layout-pane">shell</div>
         </div>
         <h4>Main + Bottom</h4>
-        <p>AI-focused interface</p>
+        <p>AI-focused interface with utility access</p>
       </div>
     </div>
   </section>
 
   <section class="install" id="install">
     <div class="install-content">
-      <h2>Installation</h2>
-      <p>Get gsx running in under a minute.</p>
+      <div class="section-header">
+        <div class="section-label">Installation</div>
+        <h2>Running in under a minute.</h2>
+        <p>Two ways to get started, both equally quick.</p>
+      </div>
 
       <div class="install-methods">
         <div class="install-method">
-          <h3>🍺 Homebrew</h3>
+          <h3><span>&#127866;</span> Homebrew</h3>
           <p>Recommended for most users</p>
           <div class="code-block">
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
@@ -789,7 +1091,7 @@
         </div>
 
         <div class="install-method">
-          <h3>📦 From Source</h3>
+          <h3><span>&#128230;</span> From Source</h3>
           <p>Clone and install manually</p>
           <div class="code-block">
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
@@ -806,38 +1108,39 @@ cd gsx
   </section>
 
   <footer>
-    <a href="#" class="logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#22d3ee"/>
-              <stop offset="100%" stop-color="#a78bfa"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGrad2)" opacity="0.15"/>
-          <rect x="4" y="4" width="10" height="24" rx="2" fill="url(#logoGrad2)"/>
-          <rect x="16" y="4" width="12" height="11" rx="2" fill="url(#logoGrad2)" opacity="0.6"/>
-          <rect x="16" y="17" width="12" height="11" rx="2" fill="url(#logoGrad2)" opacity="0.6"/>
-        </svg>
+    <div class="container">
+      <div class="footer-left">
+        <a href="#" class="logo">
+          <div class="logo-mark">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          gsx
+        </a>
+        <span class="footer-tagline">Made for the AI-assisted coding era.</span>
       </div>
-      gsx
-    </a>
-    <p>
-      Made for the AI-assisted coding era.<br>
-      <a href="https://github.com/minorole/gsx">GitHub</a> ·
-      <a href="https://github.com/minorole/gsx/issues">Issues</a> ·
-      <a href="https://github.com/minorole/gsx/blob/main/LICENSE">MIT License</a>
-    </p>
+      <div class="footer-links">
+        <a href="https://github.com/minorole/gsx">GitHub</a>
+        <a href="https://github.com/minorole/gsx/issues">Issues</a>
+        <a href="https://github.com/minorole/gsx/blob/main/LICENSE">MIT License</a>
+      </div>
+    </div>
   </footer>
 
   <script>
+    // Nav scroll effect
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
     // Copy code functionality
     function copyCode(btn) {
       const codeBlock = btn.parentElement;
       const code = codeBlock.querySelector('code').textContent;
       navigator.clipboard.writeText(code.replace(/# .*\n/g, '').trim());
-      btn.textContent = 'Copied!';
+      btn.textContent = 'Copied';
       setTimeout(() => btn.textContent = 'Copy', 2000);
     }
   </script>
