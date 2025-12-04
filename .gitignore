@@ -14,3 +14,6 @@
 
 # Local homebrew formula (lives in minorole/homebrew-tap)
 homebrew/
+
+# Local temp folder
+temp/
