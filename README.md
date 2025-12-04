@@ -1,12 +1,22 @@
-# gsx
+<p align="center">
+  <img src="assets/logo.svg" width="80" alt="gsx logo">
+</p>
 
-**Ghostty Session Manager** — Launch AI-ready development environments with one command.
+<h1 align="center">gsx</h1>
 
-```bash
-gsx myproject   # Opens Ghostty with Claude ready to go
-```
+<p align="center">
+  <strong>Ghostty Session Manager</strong> — Launch AI-ready development environments with one command.
+</p>
 
-![gsx demo](assets/demo.gif)
+<p align="center">
+  <code>gsx myproject</code> — Opens Ghostty with Claude ready to go
+</p>
+
+<br>
+
+<p align="center">
+  <img src="assets/demo.gif" alt="gsx demo" width="700">
+</p>
 
 ## What it does
 
@@ -166,7 +176,7 @@ If you cloned the repo, you can also delete that directory.
 - [ ] Session save/restore
 - [ ] More layout options (grid, custom)
 - [ ] Linux support (xdotool)
-- [ ] Homebrew tap
+- [x] Homebrew tap
 
 ## License
 

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0d078"/>
+      <stop offset="100%" stop-color="#d4a855"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ghost head (unified top) -->
+  <path d="M4 16 C4 6 12 2 20 2 C28 2 36 6 36 16 L36 18 L4 18 Z" fill="url(#gold)"/>
+
+  <!-- Pane 1: Left (tallest - AI primary) -->
+  <path d="M4 18 L4 42 C4 44 5 46 6 44 C7 42 8 44 9 42 C10 44 11 42 12 42 L12 18 Z" fill="url(#gold)"/>
+
+  <!-- Pane 2: Middle (medium - AI secondary) -->
+  <path d="M14 18 L14 36 C14 38 15 40 16 38 C17 36 18 38 19 36 C20 38 21 36 22 36 L22 18 Z" fill="url(#gold)" opacity="0.6"/>
+
+  <!-- Pane 3: Right (short - shell) -->
+  <path d="M24 18 L24 30 C24 32 25 34 26 32 C27 30 28 32 29 30 C30 32 31 30 32 30 L32 18 Z" fill="url(#gold)" opacity="0.35"/>
+
+  <!-- Pane 4: Far right (shortest - utility) -->
+  <path d="M34 18 L34 24 C34 26 35 27 36 25 L36 18 Z" fill="url(#gold)" opacity="0.2"/>
+
+  <!-- Eyes -->
+  <ellipse cx="12" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+  <ellipse cx="22" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+
+  <!-- Eye glints -->
+  <circle cx="11.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+  <circle cx="21.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+</svg>

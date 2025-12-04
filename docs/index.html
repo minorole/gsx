@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>gsx — Ghostty Session Manager</title>
   <meta name="description" content="Launch AI-ready development environments with one command. Pre-configured multi-pane terminals for Claude, Aider, and your workflow.">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -114,36 +115,22 @@
     }
 
     .logo-mark {
-      width: 32px;
-      height: 32px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 3px;
-      transform: rotate(-5deg);
+      width: 28px;
+      height: 34px;
+      flex-shrink: 0;
+      transition: transform 0.3s var(--ease-out-expo);
     }
 
-    .logo-mark span {
-      background: var(--accent);
-      border-radius: 2px;
-      transition: all 0.3s var(--ease-out-expo);
+    .logo:hover .logo-mark {
+      transform: translateY(-2px);
     }
 
-    .logo-mark span:nth-child(1) {
-      grid-row: span 2;
-      opacity: 1;
+    .logo-mark .ghost-pane {
+      transition: opacity 0.3s var(--ease-out-expo);
     }
 
-    .logo-mark span:nth-child(2) {
-      opacity: 0.5;
-    }
-
-    .logo-mark span:nth-child(3) {
-      opacity: 0.3;
-    }
-
-    .logo:hover .logo-mark span {
-      opacity: 1;
+    .logo:hover .logo-mark .ghost-pane {
+      opacity: 1 !important;
     }
 
     .nav-links {
@@ -925,11 +912,23 @@
   <nav>
     <div class="container">
       <a href="#" class="logo">
-        <div class="logo-mark">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+        <svg class="logo-mark" viewBox="0 0 40 48" fill="none">
+          <defs>
+            <linearGradient id="navGold" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#f0d078"/>
+              <stop offset="100%" stop-color="#d4a855"/>
+            </linearGradient>
+          </defs>
+          <path d="M4 16 C4 6 12 2 20 2 C28 2 36 6 36 16 L36 18 L4 18 Z" fill="url(#navGold)"/>
+          <path d="M4 18 L4 42 C4 44 5 46 6 44 C7 42 8 44 9 42 C10 44 11 42 12 42 L12 18 Z" fill="url(#navGold)" class="ghost-pane"/>
+          <path d="M14 18 L14 36 C14 38 15 40 16 38 C17 36 18 38 19 36 C20 38 21 36 22 36 L22 18 Z" fill="url(#navGold)" class="ghost-pane" opacity="0.6"/>
+          <path d="M24 18 L24 30 C24 32 25 34 26 32 C27 30 28 32 29 30 C30 32 31 30 32 30 L32 18 Z" fill="url(#navGold)" class="ghost-pane" opacity="0.35"/>
+          <path d="M34 18 L34 24 C34 26 35 27 36 25 L36 18 Z" fill="url(#navGold)" class="ghost-pane" opacity="0.2"/>
+          <ellipse cx="12" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+          <ellipse cx="22" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+          <circle cx="11.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+          <circle cx="21.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+        </svg>
         gsx
       </a>
       <div class="nav-links">
@@ -1111,11 +1110,23 @@ cd gsx
     <div class="container">
       <div class="footer-left">
         <a href="#" class="logo">
-          <div class="logo-mark">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
+          <svg class="logo-mark" viewBox="0 0 40 48" fill="none">
+            <defs>
+              <linearGradient id="footerGold" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f0d078"/>
+                <stop offset="100%" stop-color="#d4a855"/>
+              </linearGradient>
+            </defs>
+            <path d="M4 16 C4 6 12 2 20 2 C28 2 36 6 36 16 L36 18 L4 18 Z" fill="url(#footerGold)"/>
+            <path d="M4 18 L4 42 C4 44 5 46 6 44 C7 42 8 44 9 42 C10 44 11 42 12 42 L12 18 Z" fill="url(#footerGold)" class="ghost-pane"/>
+            <path d="M14 18 L14 36 C14 38 15 40 16 38 C17 36 18 38 19 36 C20 38 21 36 22 36 L22 18 Z" fill="url(#footerGold)" class="ghost-pane" opacity="0.6"/>
+            <path d="M24 18 L24 30 C24 32 25 34 26 32 C27 30 28 32 29 30 C30 32 31 30 32 30 L32 18 Z" fill="url(#footerGold)" class="ghost-pane" opacity="0.35"/>
+            <path d="M34 18 L34 24 C34 26 35 27 36 25 L36 18 Z" fill="url(#footerGold)" class="ghost-pane" opacity="0.2"/>
+            <ellipse cx="12" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+            <ellipse cx="22" cy="11" rx="2.5" ry="3" fill="#0c0b09" opacity="0.7"/>
+            <circle cx="11.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+            <circle cx="21.2" cy="9.8" r="0.9" fill="#fff" opacity="0.5"/>
+          </svg>
           gsx
         </a>
         <span class="footer-tagline">Made for the AI-assisted coding era.</span>
@@ -1124,6 +1135,17 @@ cd gsx
         <a href="https://github.com/minorole/gsx">GitHub</a>
         <a href="https://github.com/minorole/gsx/issues">Issues</a>
         <a href="https://github.com/minorole/gsx/blob/main/LICENSE">MIT License</a>
+        <a href="https://x.com/ByJunP" target="_blank" title="Follow on X">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+        <a href="mailto:junpeng@me.com?subject=gsx%20Feedback" title="Send feedback">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="16" x="2" y="4" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+        </a>
       </div>
     </div>
   </footer>
