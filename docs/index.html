@@ -96,12 +96,14 @@
     .logo-icon {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
-      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+    }
+
+    .logo-icon svg {
+      width: 100%;
+      height: 100%;
     }
 
     nav a {
@@ -221,6 +223,50 @@
       to {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    /* Vertical Carousel */
+    .carousel-container {
+      display: inline-flex;
+      align-items: center;
+      height: 1.2em;
+      overflow: hidden;
+      vertical-align: bottom;
+    }
+
+    .carousel-track {
+      display: flex;
+      flex-direction: column;
+      animation: carouselSlide 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .carousel-item {
+      height: 1.2em;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+
+    @keyframes carouselSlide {
+      0%, 20% {
+        transform: translateY(0);
+      }
+      25%, 45% {
+        transform: translateY(-1.2em);
+      }
+      50%, 70% {
+        transform: translateY(-2.4em);
+      }
+      75%, 95% {
+        transform: translateY(-3.6em);
+      }
+      100% {
+        transform: translateY(-4.8em);
       }
     }
 
@@ -591,7 +637,20 @@
   <nav>
     <div class="container">
       <a href="#" class="logo">
-        <div class="logo-icon">▦</div>
+        <div class="logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="100%" stop-color="#a78bfa"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGrad)" opacity="0.15"/>
+            <rect x="4" y="4" width="10" height="24" rx="2" fill="url(#logoGrad)"/>
+            <rect x="16" y="4" width="12" height="11" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+            <rect x="16" y="17" width="12" height="11" rx="2" fill="url(#logoGrad)" opacity="0.6"/>
+          </svg>
+        </div>
         gsx
       </a>
       <div class="nav-links">
@@ -613,7 +672,7 @@
       Built for Ghostty + AI workflows
     </div>
 
-    <h1>One command.<br><span>Ready to code.</span></h1>
+    <h1>One command.<br><span class="carousel-container"><span class="carousel-track"><span class="carousel-item">Ready to code.</span><span class="carousel-item">Launch Claude.</span><span class="carousel-item">Split panes.</span><span class="carousel-item">Ship faster.</span><span class="carousel-item">Ready to code.</span></span></span></h1>
 
     <p>
       Stop manually splitting panes and launching AI assistants.
@@ -748,7 +807,20 @@ cd gsx
 
   <footer>
     <a href="#" class="logo">
-      <div class="logo-icon">▦</div>
+      <div class="logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#22d3ee"/>
+              <stop offset="100%" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGrad2)" opacity="0.15"/>
+          <rect x="4" y="4" width="10" height="24" rx="2" fill="url(#logoGrad2)"/>
+          <rect x="16" y="4" width="12" height="11" rx="2" fill="url(#logoGrad2)" opacity="0.6"/>
+          <rect x="16" y="17" width="12" height="11" rx="2" fill="url(#logoGrad2)" opacity="0.6"/>
+        </svg>
+      </div>
       gsx
     </a>
     <p>
