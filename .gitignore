@@ -11,3 +11,6 @@
 # Temp files
 *.log
 *.tmp
+
+# Local homebrew formula (lives in minorole/homebrew-tap)
+homebrew/
