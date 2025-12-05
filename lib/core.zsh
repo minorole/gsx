@@ -1,7 +1,7 @@
 # gsx core
 # Version, constants, and preflight checks
 
-GSX_VERSION="0.2.0"
+GSX_VERSION="$(cat "${GSX_ROOT}/VERSION" 2>/dev/null || echo "dev")"
 
 # Preflight checks (macOS, osascript)
 preflight_check() {

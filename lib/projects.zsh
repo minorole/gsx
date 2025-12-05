@@ -13,6 +13,13 @@ resolve_project_dir() {
       return 1
     fi
     resolved=$(cd "${input}" && pwd)
+  elif [[ "${input}" = ./* || "${input}" = ../* ]]; then
+    # Relative path (./help, ../project) - resolve from current directory
+    if [[ ! -d "${input}" ]]; then
+      echo "Error: Path '${input}' does not exist" >&2
+      return 1
+    fi
+    resolved=$(cd "${input}" && pwd)
   else
     # Project name - look in PROJECTS_ROOT
     if [[ ! -d "${PROJECTS_ROOT}/${input}" ]]; then

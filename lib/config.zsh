@@ -131,6 +131,19 @@ parse_project_config() {
 
   [[ ! -f "${CONFIG_FILE}" ]] && return 1
 
+  # Escape regex metacharacters in project name for safe matching
+  local escaped_project="${target_project//\\/\\\\}"
+  escaped_project="${escaped_project//./\\.}"
+  escaped_project="${escaped_project//\*/\\*}"
+  escaped_project="${escaped_project//\[/\\[}"
+  escaped_project="${escaped_project//\]/\\]}"
+  escaped_project="${escaped_project//^/\\^}"
+  escaped_project="${escaped_project//\$/\\\$}"
+  escaped_project="${escaped_project//\?/\\?}"
+  escaped_project="${escaped_project//+/\\+}"
+  escaped_project="${escaped_project//\(/\\(}"
+  escaped_project="${escaped_project//\)/\\)}"
+
   local line in_project=false in_commands=false cmd_format=""
   local -a project_commands=()
 
@@ -138,7 +151,7 @@ parse_project_config() {
     [[ "${line}" =~ ^[[:space:]]*# ]] && continue
 
     # Found target project section
-    if [[ "${line}" =~ ^[[:space:]]{2}${target_project}:[[:space:]]*$ ]]; then
+    if [[ "${line}" =~ ^[[:space:]]{2}${escaped_project}:[[:space:]]*$ ]]; then
       in_project=true
       in_commands=false
       continue

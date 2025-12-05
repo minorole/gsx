@@ -116,6 +116,22 @@ else
     TESTS_RUN=$((TESTS_RUN + 1))
 fi
 
+# Test: get_layout_info
+echo ""
+echo "=== get_layout_info ==="
+
+get_layout_info "duo"
+assert_eq "duo pane count" "2" "$LAYOUT_PANE_COUNT"
+
+get_layout_info "quad"
+assert_eq "quad pane count" "4" "$LAYOUT_PANE_COUNT"
+
+get_layout_info "2-3-1"
+assert_eq "2-3-1 pane count" "6" "$LAYOUT_PANE_COUNT"
+
+get_layout_info "dashboard"
+assert_eq "dashboard pane count" "4" "$LAYOUT_PANE_COUNT"
+
 # Summary
 echo ""
 echo "=== Summary ==="

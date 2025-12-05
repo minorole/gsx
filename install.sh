@@ -5,7 +5,8 @@ set -e
 # gsx installer
 # https://github.com/minorole/gsx
 
-GSX_VERSION="0.1.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GSX_VERSION="$(cat "${SCRIPT_DIR}/VERSION" 2>/dev/null || echo "dev")"
 INSTALL_DIR="${HOME}/.local/bin"
 GSX_HOME="${HOME}/.local/share/gsx"
 
@@ -74,9 +75,9 @@ mkdir -p "${GSX_HOME}/scripts"
 
 # Copy files
 echo -e "${BLUE}Installing gsx...${NC}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cp "${SCRIPT_DIR}/bin/gsx" "${GSX_HOME}/gsx"
+cp "${SCRIPT_DIR}/VERSION" "${GSX_HOME}/VERSION"
 cp "${SCRIPT_DIR}/lib/"*.zsh "${GSX_HOME}/lib/"
 cp "${SCRIPT_DIR}/scripts/"*.applescript "${GSX_HOME}/scripts/"
 chmod +x "${GSX_HOME}/gsx"

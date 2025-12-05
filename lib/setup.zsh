@@ -114,61 +114,20 @@ setup_wizard() {
       echo "Examples: 2-2 (4 panes), 1-3 (4 panes), 2-3-1 (6 panes), 5-5 (10 panes)"
       local custom_layout=""
       prompt_input "Layout: " custom_layout
-      # Full validation
-      if [[ ! "${custom_layout}" =~ ^[1-9](-[1-9])*$ ]]; then
-        echo "Invalid format. Using 'duo' instead."
-        default_layout="duo"
+      if validate_layout "${custom_layout}" 2>/dev/null; then
+        default_layout="${custom_layout}"
       else
-        # Count panes and rows
-        local spec="${custom_layout}" total=0 rows=0
-        while [[ -n "${spec}" ]]; do
-          total=$((total + ${spec%%-*}))
-          rows=$((rows + 1))
-          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
-        done
-        if (( total > 10 )); then
-          echo "Too many panes (${total}). Max is 10. Using 'duo' instead."
-          default_layout="duo"
-        elif (( rows > 4 )); then
-          echo "Too many rows (${rows}). Max is 4. Using 'duo' instead."
-          default_layout="duo"
-        else
-          default_layout="${custom_layout}"
-        fi
+        echo "Invalid layout. Using 'duo' instead."
+        default_layout="duo"
       fi
       ;;
     *) default_layout="duo" ;;
   esac
 
   # Calculate number of panes for this layout
-  local -a pane_labels=()
-  local num_panes=0
-  case "${default_layout}" in
-    duo|2-col|2)     num_panes=2; pane_labels=("Left" "Right") ;;
-    trio|3-col|3)    num_panes=3; pane_labels=("Left" "Middle" "Right") ;;
-    stacked|1-1)     num_panes=2; pane_labels=("Top" "Bottom") ;;
-    quad|2-2)        num_panes=4; pane_labels=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
-    dashboard|1-3)   num_panes=4; pane_labels=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
-    wide|3-1)        num_panes=4; pane_labels=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
-    *)
-      # Custom layout - count panes from spec
-      local spec="${default_layout}"
-      num_panes=0
-      local row
-      while [[ -n "${spec}" ]]; do
-        row="${spec%%-*}"
-        num_panes=$((num_panes + row))
-        [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
-      done
-      # Generate generic labels
-      pane_labels=()
-      local i=1
-      while (( i <= num_panes )); do
-        pane_labels+=("Pane ${i}")
-        i=$((i + 1))
-      done
-      ;;
-  esac
+  get_layout_info "${default_layout}"
+  local num_panes=$LAYOUT_PANE_COUNT
+  local -a pane_labels=("${LAYOUT_PANE_LABELS[@]}")
 
   echo ""
   echo "Commands for each pane (Enter = empty shell)"
@@ -226,8 +185,8 @@ default_layout: ${default_layout}
 
 default_commands:
 $(echo -e "${commands_yaml}")
-# Per-project overrides:
-# projects:
+# Per-project overrides (uncomment and edit):
+projects:
 #   myproject:
 #     layout: quad
 #     commands:
@@ -287,18 +246,10 @@ setup_project() {
       echo "Custom: N-M-O (max 10 panes, max 4 rows)"
       local custom_layout=""
       prompt_input "Layout: " custom_layout
-      if [[ "${custom_layout}" =~ ^[1-9](-[1-9])*$ ]]; then
-        local spec="${custom_layout}" total=0 rows=0
-        while [[ -n "${spec}" ]]; do
-          total=$((total + ${spec%%-*}))
-          rows=$((rows + 1))
-          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
-        done
-        if (( total <= 10 && rows <= 4 )); then
-          project_layout="${custom_layout}"
-        else
-          echo "Invalid (${total} panes, ${rows} rows). Skipping layout override."
-        fi
+      if validate_layout "${custom_layout}" 2>/dev/null; then
+        project_layout="${custom_layout}"
+      else
+        echo "Invalid layout. Skipping layout override."
       fi
       ;;
   esac
@@ -308,28 +259,9 @@ setup_project() {
   local num_panes=0
 
   if [[ -n "${project_layout}" ]]; then
-    case "${project_layout}" in
-      duo|2-col|2)     num_panes=2; pane_labels=("Left" "Right") ;;
-      trio|3-col|3)    num_panes=3; pane_labels=("Left" "Middle" "Right") ;;
-      stacked|1-1)     num_panes=2; pane_labels=("Top" "Bottom") ;;
-      quad|2-2)        num_panes=4; pane_labels=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
-      dashboard|1-3)   num_panes=4; pane_labels=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
-      wide|3-1)        num_panes=4; pane_labels=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
-      *)
-        # Custom layout - count panes
-        local spec="${project_layout}"
-        while [[ -n "${spec}" ]]; do
-          local row="${spec%%-*}"
-          num_panes=$((num_panes + row))
-          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
-        done
-        local i=1
-        while (( i <= num_panes )); do
-          pane_labels+=("Pane ${i}")
-          i=$((i + 1))
-        done
-        ;;
-    esac
+    get_layout_info "${project_layout}"
+    num_panes=$LAYOUT_PANE_COUNT
+    pane_labels=("${LAYOUT_PANE_LABELS[@]}")
   fi
 
   # Commands

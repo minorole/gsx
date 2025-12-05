@@ -46,8 +46,8 @@ on run argv
             delay 0.6
 
             -- cd to project directory (this is pane 1, spatial position 0)
-            set projectDirQuoted to "'" & projectDir & "'"
-            keystroke "cd " & projectDirQuoted
+            -- Use quoted form to safely handle paths with apostrophes/special chars
+            keystroke "cd " & quoted form of projectDir
             key code 36 -- Enter
             delay 0.3
 

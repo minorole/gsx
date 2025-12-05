@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2025-12-05
+
+### Added
+
+- `VERSION` file as single source of truth for version number
+- `get_layout_info()` helper function for consistent pane count and label generation
+- Support for relative paths (`./project`, `../project`) in project resolution
+- Tests for `get_layout_info()` function
+
+### Fixed
+
+- **Path injection vulnerability**: Paths containing apostrophes (e.g., `/Users/O'Brien/Projects`) now handled safely using AppleScript's `quoted form of`
+- **Config parsing for special project names**: Project names containing regex metacharacters (`.`, `+`, `?`, `(`, `)`, `[`, `]`, `^`, `$`, `*`, `\`) no longer break config parsing
+- **Invalid YAML on project setup**: Generated config now includes uncommented `projects:` key, preventing malformed YAML when adding project-specific overrides
+- Version mismatch between `install.sh` and `core.zsh` (now both read from `VERSION` file)
+
+### Changed
+
+- Refactored `setup.zsh` to use shared layout helpers, reducing code duplication (380 → 312 lines)
+- Installer now copies `VERSION` file to installation directory
+
+### Removed
+
+- Legacy layout functions (`layout_2col`, `layout_3col`, `layout_main_bottom`) — superseded by dynamic layout engine
+- Legacy AppleScript files (`layout-2col.applescript`, `layout-3col.applescript`, `layout-main-bottom.applescript`)
+
 ## [0.2.0] - 2025-12-04
 
 ### Added
@@ -49,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.1]: https://github.com/minorole/gsx/releases/tag/v0.2.1
 [0.2.0]: https://github.com/minorole/gsx/releases/tag/v0.2.0
 [0.1.1]: https://github.com/minorole/gsx/releases/tag/v0.1.1
 [0.1.0]: https://github.com/minorole/gsx/releases/tag/v0.1.0

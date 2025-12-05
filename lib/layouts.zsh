@@ -88,6 +88,38 @@ validate_layout() {
     return 0
 }
 
+# Get pane count and labels for a layout
+# Usage: get_layout_info "quad" -> sets LAYOUT_PANE_COUNT and LAYOUT_PANE_LABELS
+# Returns via global variables to avoid subshell issues with arrays
+get_layout_info() {
+    local layout=$1
+
+    # Resolve alias first
+    local resolved
+    resolved=$(resolve_layout_alias "$layout")
+
+    LAYOUT_PANE_COUNT=0
+    LAYOUT_PANE_LABELS=()
+
+    case "${resolved}" in
+        2)   LAYOUT_PANE_COUNT=2; LAYOUT_PANE_LABELS=("Left" "Right") ;;
+        3)   LAYOUT_PANE_COUNT=3; LAYOUT_PANE_LABELS=("Left" "Middle" "Right") ;;
+        1-1) LAYOUT_PANE_COUNT=2; LAYOUT_PANE_LABELS=("Top" "Bottom") ;;
+        2-2) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
+        1-3) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
+        3-1) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
+        *)
+            # Custom layout - count panes from spec
+            LAYOUT_PANE_COUNT=$(compute_total_panes "$resolved")
+            local i=1
+            while (( i <= LAYOUT_PANE_COUNT )); do
+                LAYOUT_PANE_LABELS+=("Pane ${i}")
+                i=$((i + 1))
+            done
+            ;;
+    esac
+}
+
 # =============================================================================
 # Dynamic Layout (main entry point)
 # =============================================================================
@@ -163,22 +195,4 @@ run_layout() {
     fi
     return 1
   fi
-}
-
-# Layout: 3-col (left | middle | right)
-layout_3col() {
-  local label=$1 project_dir=$2 cmd_left=$3 cmd_middle=$4 cmd_right=$5
-  run_layout "layout-3col" "${label}" "${project_dir}" "${cmd_left}" "${cmd_middle}" "${cmd_right}"
-}
-
-# Layout: 2-col (left | right)
-layout_2col() {
-  local label=$1 project_dir=$2 cmd_left=$3 cmd_right=$4
-  run_layout "layout-2col" "${label}" "${project_dir}" "${cmd_left}" "${cmd_right}"
-}
-
-# Layout: main+bottom (top | bottom)
-layout_main_bottom() {
-  local label=$1 project_dir=$2 cmd_top=$3 cmd_bottom=$4
-  run_layout "layout-main-bottom" "${label}" "${project_dir}" "${cmd_top}" "${cmd_bottom}"
 }
