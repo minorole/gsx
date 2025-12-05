@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <code>gsx myproject</code> — Opens Ghostty with Claude ready to go
+  <code>gsx</code> — Open multiple projects in parallel, each with your configured layout
 </p>
 
 <br>
@@ -78,8 +78,8 @@ This interactive wizard will ask for:
 ### Launch a session
 
 ```bash
+gsx                     # Interactive picker — type "1 3 5" to open multiple projects in parallel
 gsx myproject           # Launch session for 'myproject'
-gsx                     # Interactive project picker
 ```
 
 ### Per-project configuration

@@ -4,32 +4,37 @@
 # Root directory containing your projects
 projects_root: ~/Projects
 
-# Default layout: 3-col, 2-col, or main+bottom
-default_layout: 3-col
+# Default layout (see 'gsx help' for all options)
+# Pane layouts: duo, trio, quad, dashboard, stacked, wide, or row notation (2-2, 1-3, etc.)
+# Tab layout: tabs (one command per tab, up to 10)
+default_layout: duo
 
-# Default commands for each pane (empty string = just shell)
-# Examples: "claude", "aider", "npm run dev", ""
+# Default commands for each pane/tab (empty string = just shell)
+# Commands are applied in order: left-to-right, top-to-bottom for panes; tab 1, 2, 3... for tabs
 default_commands:
-  left: "claude"
-  middle: "claude"
-  right: ""
+  - "claude"
+  - ""
 
 # Per-project overrides (optional)
 # projects:
 #   myproject:
-#     layout: 2-col
+#     layout: quad
 #     commands:
-#       left: "npm run dev"
-#       right: ""
+#       - "nvim ."
+#       - "npm run dev"
+#       - "npm test"
+#       - ""
 #
-#   another-project:
+#   webapp:
+#     layout: tabs
 #     commands:
-#       left: "aider"
-#       middle: "npm run watch"
-#       right: ""
+#       - "claude"
+#       - "npm run dev"
+#       - "npm test"
+#       - ""
 
 # Tips:
 # - Use "clear && claude" for a cleaner startup
 # - For unattended workflows, Claude supports --dangerously-skip-permissions
 #   (use with caution - this bypasses all confirmation prompts)
-# - Leave a pane empty ("") for a regular shell
+# - Leave a pane/tab empty ("") for a regular shell

@@ -88,7 +88,13 @@ setup_wizard() {
   echo ""
 
   # Layout selection
+  # Colors
+  local dim=$'\e[2m'
+  local cyan=$'\e[36m'
+  local reset=$'\e[0m'
+
   echo "Layouts:"
+  echo "  ${dim}── Panes (split window) ──${reset}"
   echo "  1) duo        Two panes side-by-side    [1|2]"
   echo "  2) trio       Three panes side-by-side  [1|2|3]"
   echo "  3) stacked    Two panes vertically      [1] / [2]"
@@ -97,10 +103,14 @@ setup_wizard() {
   echo "  6) wide       3 top + 1 bottom          [1|2|3] / [  4  ]"
   echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
   echo ""
+  echo "  ${cyan}── Tabs (separate tabs) ──${reset}"
+  echo "  ${cyan}8) tabs       One tab per command (up to 10)${reset}"
+  echo ""
   local layout_choice=""
   prompt_input "Default layout [1]: " layout_choice
 
   local default_layout
+  local num_tabs=0
   case "${layout_choice}" in
     1|"") default_layout="duo" ;;
     2) default_layout="trio" ;;
@@ -121,16 +131,42 @@ setup_wizard() {
         default_layout="duo"
       fi
       ;;
+    8)
+      default_layout="tabs"
+      echo ""
+      local tabs_input=""
+      prompt_input "How many tabs? [2-10, default 4]: " tabs_input
+      if [[ -z "${tabs_input}" ]]; then
+        num_tabs=4
+      elif [[ "${tabs_input}" =~ ^[0-9]+$ ]] && (( tabs_input >= 2 && tabs_input <= 10 )); then
+        num_tabs="${tabs_input}"
+      else
+        echo "Invalid number. Using 4 tabs."
+        num_tabs=4
+      fi
+      ;;
     *) default_layout="duo" ;;
   esac
 
-  # Calculate number of panes for this layout
-  get_layout_info "${default_layout}"
-  local num_panes=$LAYOUT_PANE_COUNT
-  local -a pane_labels=("${LAYOUT_PANE_LABELS[@]}")
+  # Calculate number of panes/tabs for this layout
+  local num_panes
+  local -a pane_labels=()
+  local unit="pane"
+
+  if [[ "${default_layout}" == "tabs" ]]; then
+    unit="tab"
+    num_panes="${num_tabs}"
+    for ((i = 1; i <= num_tabs; i++)); do
+      pane_labels+=("Tab ${i}")
+    done
+  else
+    get_layout_info "${default_layout}"
+    num_panes=$LAYOUT_PANE_COUNT
+    pane_labels=("${LAYOUT_PANE_LABELS[@]}")
+  fi
 
   echo ""
-  echo "Commands for each pane (Enter = empty shell)"
+  echo "Commands for each ${unit} (Enter = empty shell)"
   echo "Examples: claude, aider, npm run dev, clear && claude"
   echo ""
 

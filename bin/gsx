@@ -39,17 +39,30 @@ open_session() {
     echo "  ${project_name}"
     echo "    dir:    ${project_dir}"
     echo "    layout: ${resolved_layout}"
-    local total_panes
-    total_panes=$(compute_total_panes "${resolved_layout}")
-    for ((i = 1; i <= total_panes; i++)); do
-      local cmd="${PANE_COMMANDS[$i]:-}"
-      echo "    pane $i: ${cmd:-<empty>}"
-    done
+    if is_tabs_layout "${resolved_layout}"; then
+      local num_tabs=${#PANE_COMMANDS[@]}
+      (( num_tabs > 10 )) && num_tabs=10
+      for ((i = 1; i <= num_tabs; i++)); do
+        local cmd="${PANE_COMMANDS[$i]:-}"
+        echo "    tab ${i}/${num_tabs}: ${cmd:-<empty>}"
+      done
+    else
+      local total_panes
+      total_panes=$(compute_total_panes "${resolved_layout}")
+      for ((i = 1; i <= total_panes; i++)); do
+        local cmd="${PANE_COMMANDS[$i]:-}"
+        echo "    pane $i: ${cmd:-<empty>}"
+      done
+    fi
     return 0
   fi
 
-  # Use dynamic layout for all configurations
-  layout_dynamic "${project_name}" "${project_dir}" "${resolved_layout}" "${PANE_COMMANDS[@]}"
+  # Route to appropriate layout handler
+  if is_tabs_layout "${resolved_layout}"; then
+    layout_tabs "${project_name}" "${project_dir}" "${PANE_COMMANDS[@]}"
+  else
+    layout_dynamic "${project_name}" "${project_dir}" "${resolved_layout}" "${PANE_COMMANDS[@]}"
+  fi
 }
 
 # Main entry point

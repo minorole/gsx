@@ -8,7 +8,7 @@ SCRIPTS_DIR="${GSX_ROOT}/scripts"
 # Layout Aliases & Resolution
 # =============================================================================
 
-# Layout alias map: name -> row notation
+# Layout alias map: name -> row notation (or special keyword)
 typeset -A LAYOUT_ALIASES
 LAYOUT_ALIASES[duo]="2"
 LAYOUT_ALIASES[trio]="3"
@@ -19,6 +19,7 @@ LAYOUT_ALIASES[stacked]="1-1"
 LAYOUT_ALIASES[quad]="2-2"
 LAYOUT_ALIASES[dashboard]="1-3"
 LAYOUT_ALIASES[wide]="3-1"
+LAYOUT_ALIASES[tabs]="tabs"
 
 # Resolve layout alias to row notation
 # Usage: resolve_layout_alias "quad" -> "2-2"
@@ -102,6 +103,11 @@ get_layout_info() {
     LAYOUT_PANE_LABELS=()
 
     case "${resolved}" in
+        tabs)
+            # Tabs layout: default to 4 tabs for setup wizard
+            LAYOUT_PANE_COUNT=4
+            LAYOUT_PANE_LABELS=("Tab 1" "Tab 2" "Tab 3" "Tab 4")
+            ;;
         2)   LAYOUT_PANE_COUNT=2; LAYOUT_PANE_LABELS=("Left" "Right") ;;
         3)   LAYOUT_PANE_COUNT=3; LAYOUT_PANE_LABELS=("Left" "Middle" "Right") ;;
         1-1) LAYOUT_PANE_COUNT=2; LAYOUT_PANE_LABELS=("Top" "Bottom") ;;
@@ -118,6 +124,43 @@ get_layout_info() {
             done
             ;;
     esac
+}
+
+# =============================================================================
+# Tabs Layout
+# =============================================================================
+
+# Layout: tabs (one tab per command, no splits)
+# Each command runs in its own tab
+layout_tabs() {
+    local project_name=$1
+    local project_dir=$2
+    shift 2
+    local -a cmds=("$@")
+
+    local label="[${project_name}]"
+
+    # Require at least one command
+    if (( ${#cmds[@]} == 0 )); then
+        echo "Error: tabs layout requires at least one command" >&2
+        return 1
+    fi
+
+    # Max 10 tabs (matches Cmd+1 through Cmd+0 shortcuts)
+    if (( ${#cmds[@]} > 10 )); then
+        echo "Warning: Limiting to 10 tabs (${#cmds[@]} commands provided)" >&2
+        cmds=("${cmds[@]:0:10}")
+    fi
+
+    run_layout "layout-tabs" "${label}" "${project_dir}" "${cmds[@]}"
+}
+
+# Check if layout is tabs mode
+is_tabs_layout() {
+    local layout=$1
+    local resolved
+    resolved=$(resolve_layout_alias "$layout")
+    [[ "$resolved" == "tabs" ]]
 }
 
 # =============================================================================

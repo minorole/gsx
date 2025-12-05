@@ -53,10 +53,9 @@ check_for_updates() {
         | grep '"name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
     fi
 
-    # Save to cache (only if valid version)
+    # Save to cache atomically (only if valid version)
     if is_valid_version "${latest}"; then
-      echo "${now}" > "${GSX_UPDATE_CACHE}"
-      echo "${latest}" >> "${GSX_UPDATE_CACHE}"
+      printf '%s\n%s\n' "${now}" "${latest}" > "${GSX_UPDATE_CACHE}"
     fi
   } &>/dev/null &
   disown 2>/dev/null

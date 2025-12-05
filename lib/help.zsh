@@ -7,7 +7,7 @@ show_help() {
 gsx - Ghostty Session Manager v${GSX_VERSION}
 
 Usage:
-  gsx                     Interactive project picker
+  gsx                     Interactive picker (type "1 3 5" to open multiple)
   gsx <project>           Launch session for project
   gsx list                List all projects
   gsx setup               Run setup wizard
@@ -23,6 +23,7 @@ Layouts:
   Row notation: "2" (2 side-by-side), "2-2" (4-pane grid), "1-3" (1 top + 3 bottom)
 
   Aliases:
+    tabs       Multiple tabs (one command per tab, up to 10)
     duo        2 panes side-by-side
     trio       3 panes side-by-side
     quad       2x2 grid (4 panes)

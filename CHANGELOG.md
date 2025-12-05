@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2025-12-05
+
+### Added
+
+- **Tabs layout**: New `tabs` layout mode — opens multiple Ghostty tabs instead of split panes (up to 10 tabs)
+- Setup wizard option 8 for tabs, with color-coded UI to distinguish from pane layouts
+- User can choose number of tabs (2-10) during setup
+
+### Fixed
+
+- `get_layout_info()` now handles tabs layout correctly
+- Race condition in update cache writes (atomic write with printf)
+- Setup wizard now includes tabs option (was missing from menu)
+
+### Changed
+
+- `config.example.yaml` updated to array format with tabs example
+
 ## [0.2.1] - 2025-12-05
 
 ### Added
@@ -75,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.2]: https://github.com/minorole/gsx/releases/tag/v0.2.2
 [0.2.1]: https://github.com/minorole/gsx/releases/tag/v0.2.1
 [0.2.0]: https://github.com/minorole/gsx/releases/tag/v0.2.0
 [0.1.1]: https://github.com/minorole/gsx/releases/tag/v0.1.1
