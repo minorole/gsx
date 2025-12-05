@@ -29,33 +29,27 @@ open_session() {
 
   parse_config
   parse_project_config "${project_name}"
-  PROJECT_LAYOUT="${DEFAULT_LAYOUT}"
+
+  # Resolve layout alias to row notation
+  local resolved_layout
+  resolved_layout=$(resolve_layout_alias "${DEFAULT_LAYOUT}")
+  PROJECT_LAYOUT="${resolved_layout}"
 
   if [[ "${DRY_RUN}" == true ]]; then
     echo "  ${project_name}"
     echo "    dir:    ${project_dir}"
-    echo "    layout: ${DEFAULT_LAYOUT}"
-    echo "    left:   ${CMD_LEFT:-<empty>}"
-    echo "    middle: ${CMD_MIDDLE:-<empty>}"
-    echo "    right:  ${CMD_RIGHT:-<empty>}"
+    echo "    layout: ${resolved_layout}"
+    local total_panes
+    total_panes=$(compute_total_panes "${resolved_layout}")
+    for ((i = 1; i <= total_panes; i++)); do
+      local cmd="${PANE_COMMANDS[$i]:-}"
+      echo "    pane $i: ${cmd:-<empty>}"
+    done
     return 0
   fi
 
-  case "${DEFAULT_LAYOUT}" in
-    3-col)
-      layout_3col "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_MIDDLE}" "${CMD_RIGHT}"
-      ;;
-    2-col)
-      layout_2col "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_RIGHT}"
-      ;;
-    main+bottom)
-      layout_main_bottom "${project_name}" "${project_dir}" "${CMD_LEFT}" "${CMD_MIDDLE}"
-      ;;
-    *)
-      echo "Error: Unknown layout '${DEFAULT_LAYOUT}'"
-      exit 1
-      ;;
-  esac
+  # Use dynamic layout for all configurations
+  layout_dynamic "${project_name}" "${project_dir}" "${resolved_layout}" "${PANE_COMMANDS[@]}"
 }
 
 # Main entry point

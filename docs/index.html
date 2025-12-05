@@ -563,7 +563,7 @@
     .layouts-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
+      gap: 1.5rem;
       margin-top: 4rem;
     }
 
@@ -602,6 +602,20 @@
 
     .layout-main-bottom .layout-visual {
       grid-template-rows: 1.5fr 1fr;
+    }
+
+    .layout-quad .layout-visual {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .layout-dashboard .layout-visual {
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1.2fr 1fr;
+    }
+
+    .layout-dashboard .layout-pane:first-child {
+      grid-column: 1 / -1;
     }
 
     .layout-pane {
@@ -853,8 +867,8 @@
       }
 
       .layouts-grid {
-        grid-template-columns: 1fr;
-        max-width: 400px;
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 600px;
         margin-left: auto;
         margin-right: auto;
       }
@@ -1022,8 +1036,8 @@
 
       <div class="feature-card">
         <div class="feature-number">05</div>
-        <h3>Flexible Layouts</h3>
-        <p>Choose from 3-column, 2-column, or main+bottom layouts. Each optimized for different workflows and displays.</p>
+        <h3>Dynamic Layouts</h3>
+        <p>2-10 panes in any configuration. Presets like quad and dashboard, or custom layouts like 2-2-5-1.</p>
       </div>
 
       <div class="feature-card">
@@ -1041,23 +1055,45 @@
     </div>
 
     <div class="layouts-grid">
+      <div class="layout-card layout-2col">
+        <div class="layout-visual">
+          <div class="layout-pane ai">claude</div>
+          <div class="layout-pane">shell</div>
+        </div>
+        <h4>Duo</h4>
+        <p>Balanced AI + shell workflow</p>
+      </div>
+
       <div class="layout-card layout-3col">
         <div class="layout-visual">
           <div class="layout-pane ai">claude</div>
           <div class="layout-pane ai">aider</div>
           <div class="layout-pane">shell</div>
         </div>
-        <h4>3-Column</h4>
-        <p>For heavy AI-assisted coding sessions</p>
+        <h4>Trio</h4>
+        <p>Heavy AI-assisted coding</p>
       </div>
 
-      <div class="layout-card layout-2col">
+      <div class="layout-card layout-quad">
         <div class="layout-visual">
           <div class="layout-pane ai">claude</div>
+          <div class="layout-pane ai">aider</div>
+          <div class="layout-pane">dev</div>
           <div class="layout-pane">shell</div>
         </div>
-        <h4>2-Column</h4>
-        <p>Balanced development workflow</p>
+        <h4>Quad</h4>
+        <p>2x2 grid for complex workflows</p>
+      </div>
+
+      <div class="layout-card layout-dashboard">
+        <div class="layout-visual">
+          <div class="layout-pane ai">claude</div>
+          <div class="layout-pane">dev</div>
+          <div class="layout-pane">test</div>
+          <div class="layout-pane">logs</div>
+        </div>
+        <h4>Dashboard</h4>
+        <p>1 main top, 3 utilities below</p>
       </div>
 
       <div class="layout-card layout-main-bottom">
@@ -1065,8 +1101,18 @@
           <div class="layout-pane ai">claude</div>
           <div class="layout-pane">shell</div>
         </div>
-        <h4>Main + Bottom</h4>
-        <p>AI-focused interface with utility access</p>
+        <h4>Stacked</h4>
+        <p>Vertical split, AI on top</p>
+      </div>
+
+      <div class="layout-card layout-3col">
+        <div class="layout-visual">
+          <div class="layout-pane">1-2-1</div>
+          <div class="layout-pane">2-2-5</div>
+          <div class="layout-pane">...</div>
+        </div>
+        <h4>Custom</h4>
+        <p>Any row-based layout (max 10 panes)</p>
       </div>
     </div>
   </section>

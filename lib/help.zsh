@@ -19,6 +19,17 @@ Usage:
 Options:
   --dry-run               Show what would happen without opening windows
 
+Layouts:
+  Row notation: "2" (2 side-by-side), "2-2" (4-pane grid), "1-3" (1 top + 3 bottom)
+
+  Aliases:
+    duo        2 panes side-by-side
+    trio       3 panes side-by-side
+    quad       2x2 grid (4 panes)
+    dashboard  1 top + 3 bottom (4 panes)
+    stacked    2 panes vertically
+    wide       3 top + 1 bottom (4 panes)
+
 Examples:
   gsx setup               # First-time setup
   gsx myproject           # Launch session for 'myproject'

@@ -89,18 +89,85 @@ setup_wizard() {
 
   # Layout selection
   echo "Layouts:"
-  echo "  1) 3-col      Three panes: left | middle | right"
-  echo "  2) 2-col      Two panes: left | right"
-  echo "  3) main+bottom  Top pane + bottom bar"
+  echo "  1) duo        Two panes side-by-side    [1|2]"
+  echo "  2) trio       Three panes side-by-side  [1|2|3]"
+  echo "  3) stacked    Two panes vertically      [1] / [2]"
+  echo "  4) quad       2x2 grid                  [1|2] / [3|4]"
+  echo "  5) dashboard  1 main + 3 below          [  1  ] / [2|3|4]"
+  echo "  6) wide       3 top + 1 bottom          [1|2|3] / [  4  ]"
+  echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
   echo ""
   local layout_choice=""
   prompt_input "Default layout [1]: " layout_choice
 
   local default_layout
   case "${layout_choice}" in
-    2) default_layout="2-col" ;;
-    3) default_layout="main+bottom" ;;
-    *) default_layout="3-col" ;;
+    1|"") default_layout="duo" ;;
+    2) default_layout="trio" ;;
+    3) default_layout="stacked" ;;
+    4) default_layout="quad" ;;
+    5) default_layout="dashboard" ;;
+    6) default_layout="wide" ;;
+    7)
+      echo ""
+      echo "Custom layout: N-M-O (panes per row, max 10 panes, max 4 rows)"
+      echo "Examples: 2-2 (4 panes), 1-3 (4 panes), 2-3-1 (6 panes), 5-5 (10 panes)"
+      local custom_layout=""
+      prompt_input "Layout: " custom_layout
+      # Full validation
+      if [[ ! "${custom_layout}" =~ ^[1-9](-[1-9])*$ ]]; then
+        echo "Invalid format. Using 'duo' instead."
+        default_layout="duo"
+      else
+        # Count panes and rows
+        local spec="${custom_layout}" total=0 rows=0
+        while [[ -n "${spec}" ]]; do
+          total=$((total + ${spec%%-*}))
+          rows=$((rows + 1))
+          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
+        done
+        if (( total > 10 )); then
+          echo "Too many panes (${total}). Max is 10. Using 'duo' instead."
+          default_layout="duo"
+        elif (( rows > 4 )); then
+          echo "Too many rows (${rows}). Max is 4. Using 'duo' instead."
+          default_layout="duo"
+        else
+          default_layout="${custom_layout}"
+        fi
+      fi
+      ;;
+    *) default_layout="duo" ;;
+  esac
+
+  # Calculate number of panes for this layout
+  local -a pane_labels=()
+  local num_panes=0
+  case "${default_layout}" in
+    duo|2-col|2)     num_panes=2; pane_labels=("Left" "Right") ;;
+    trio|3-col|3)    num_panes=3; pane_labels=("Left" "Middle" "Right") ;;
+    stacked|1-1)     num_panes=2; pane_labels=("Top" "Bottom") ;;
+    quad|2-2)        num_panes=4; pane_labels=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
+    dashboard|1-3)   num_panes=4; pane_labels=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
+    wide|3-1)        num_panes=4; pane_labels=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
+    *)
+      # Custom layout - count panes from spec
+      local spec="${default_layout}"
+      num_panes=0
+      local row
+      while [[ -n "${spec}" ]]; do
+        row="${spec%%-*}"
+        num_panes=$((num_panes + row))
+        [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
+      done
+      # Generate generic labels
+      pane_labels=()
+      local i=1
+      while (( i <= num_panes )); do
+        pane_labels+=("Pane ${i}")
+        i=$((i + 1))
+      done
+      ;;
   esac
 
   echo ""
@@ -108,23 +175,14 @@ setup_wizard() {
   echo "Examples: claude, aider, npm run dev, clear && claude"
   echo ""
 
-  local cmd_left="" cmd_middle="" cmd_right=""
-
-  case "${default_layout}" in
-    3-col)
-      prompt_input "  Left pane: " cmd_left
-      prompt_input "  Middle pane: " cmd_middle
-      prompt_input "  Right pane: " cmd_right
-      ;;
-    2-col)
-      prompt_input "  Left pane: " cmd_left
-      prompt_input "  Right pane: " cmd_right
-      ;;
-    main+bottom)
-      prompt_input "  Top pane: " cmd_left
-      prompt_input "  Bottom pane: " cmd_middle
-      ;;
-  esac
+  local -a commands=()
+  local i=1
+  while (( i <= num_panes )); do
+    local cmd=""
+    prompt_input "  ${pane_labels[i]}: " cmd
+    commands+=("${cmd}")
+    i=$((i + 1))
+  done
 
   # Show summary and confirm
   echo ""
@@ -132,21 +190,11 @@ setup_wizard() {
   echo "  Folder: ${projects_root}"
   echo "  Layout: ${default_layout}"
   echo "  Commands:"
-  case "${default_layout}" in
-    3-col)
-      echo "    Left:   ${cmd_left:-<empty>}"
-      echo "    Middle: ${cmd_middle:-<empty>}"
-      echo "    Right:  ${cmd_right:-<empty>}"
-      ;;
-    2-col)
-      echo "    Left:  ${cmd_left:-<empty>}"
-      echo "    Right: ${cmd_right:-<empty>}"
-      ;;
-    main+bottom)
-      echo "    Top:    ${cmd_left:-<empty>}"
-      echo "    Bottom: ${cmd_middle:-<empty>}"
-      ;;
-  esac
+  i=1
+  while (( i <= num_panes )); do
+    echo "    ${pane_labels[i]}: ${commands[i]:-<empty>}"
+    i=$((i + 1))
+  done
   echo ""
   local save_confirm=""
   prompt_input "Save this config? [Y/n]: " save_confirm
@@ -163,23 +211,30 @@ setup_wizard() {
     return 1
   fi
 
+  # Build commands section (always use array format for consistency)
+  local commands_yaml=""
+  i=1
+  while (( i <= num_panes )); do
+    commands_yaml="${commands_yaml}  - \"${commands[i]}\"\n"
+    i=$((i + 1))
+  done
+
   cat > "${CONFIG_FILE}" <<EOF
 # gsx config - edit or run 'gsx setup' again
 projects_root: ${projects_root}
 default_layout: ${default_layout}
 
 default_commands:
-  left: "${cmd_left}"
-  middle: "${cmd_middle}"
-  right: "${cmd_right}"
-
+$(echo -e "${commands_yaml}")
 # Per-project overrides:
 # projects:
 #   myproject:
-#     layout: 2-col
+#     layout: quad
 #     commands:
-#       left: "npm run dev"
-#       right: ""
+#       - "nvim ."
+#       - "npm run dev"
+#       - "npm test"
+#       - ""
 EOF
 
   if [[ $? -ne 0 ]]; then
@@ -213,36 +268,106 @@ setup_project() {
   echo ""
 
   # Layout
-  echo "Layout: 1) 3-col  2) 2-col  3) main+bottom"
+  echo "Layout:"
+  echo "  1) duo        2) trio       3) stacked"
+  echo "  4) quad       5) dashboard  6) wide"
+  echo "  7) custom"
   local layout_choice=""
   prompt_input "Choice [keep default]: " layout_choice
 
   local project_layout=""
   case "${layout_choice}" in
-    1) project_layout="3-col" ;;
-    2) project_layout="2-col" ;;
-    3) project_layout="main+bottom" ;;
+    1) project_layout="duo" ;;
+    2) project_layout="trio" ;;
+    3) project_layout="stacked" ;;
+    4) project_layout="quad" ;;
+    5) project_layout="dashboard" ;;
+    6) project_layout="wide" ;;
+    7)
+      echo "Custom: N-M-O (max 10 panes, max 4 rows)"
+      local custom_layout=""
+      prompt_input "Layout: " custom_layout
+      if [[ "${custom_layout}" =~ ^[1-9](-[1-9])*$ ]]; then
+        local spec="${custom_layout}" total=0 rows=0
+        while [[ -n "${spec}" ]]; do
+          total=$((total + ${spec%%-*}))
+          rows=$((rows + 1))
+          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
+        done
+        if (( total <= 10 && rows <= 4 )); then
+          project_layout="${custom_layout}"
+        else
+          echo "Invalid (${total} panes, ${rows} rows). Skipping layout override."
+        fi
+      fi
+      ;;
   esac
+
+  # Calculate panes for selected layout (or use default's pane count)
+  local -a pane_labels=()
+  local num_panes=0
+
+  if [[ -n "${project_layout}" ]]; then
+    case "${project_layout}" in
+      duo|2-col|2)     num_panes=2; pane_labels=("Left" "Right") ;;
+      trio|3-col|3)    num_panes=3; pane_labels=("Left" "Middle" "Right") ;;
+      stacked|1-1)     num_panes=2; pane_labels=("Top" "Bottom") ;;
+      quad|2-2)        num_panes=4; pane_labels=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
+      dashboard|1-3)   num_panes=4; pane_labels=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
+      wide|3-1)        num_panes=4; pane_labels=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
+      *)
+        # Custom layout - count panes
+        local spec="${project_layout}"
+        while [[ -n "${spec}" ]]; do
+          local row="${spec%%-*}"
+          num_panes=$((num_panes + row))
+          [[ "${spec}" == *-* ]] && spec="${spec#*-}" || spec=""
+        done
+        local i=1
+        while (( i <= num_panes )); do
+          pane_labels+=("Pane ${i}")
+          i=$((i + 1))
+        done
+        ;;
+    esac
+  fi
 
   # Commands
   echo ""
-  echo "Commands ('none' = empty shell):"
-  local cmd_left="" cmd_middle="" cmd_right=""
+  local -a commands=()
+  local has_commands=false
 
-  prompt_input "  Left: " cmd_left
-  prompt_input "  Middle: " cmd_middle
-  prompt_input "  Right: " cmd_right
+  if [[ ${num_panes} -gt 0 ]]; then
+    echo "Commands (Enter = keep default):"
+    local i=1
+    while (( i <= num_panes )); do
+      local cmd=""
+      prompt_input "  ${pane_labels[i]}: " cmd
+      commands+=("${cmd}")
+      [[ -n "${cmd}" ]] && has_commands=true
+      i=$((i + 1))
+    done
+  else
+    echo "Commands (Enter = keep default, applies to default layout):"
+    for label in "Pane 1" "Pane 2" "Pane 3" "Pane 4"; do
+      local cmd=""
+      prompt_input "  ${label}: " cmd
+      [[ -z "${cmd}" ]] && break
+      commands+=("${cmd}")
+      has_commands=true
+    done
+  fi
 
   # Append to config
   if ! {
     echo ""
     echo "  ${project_name}:"
     [[ -n "${project_layout}" ]] && echo "    layout: ${project_layout}"
-    if [[ -n "${cmd_left}" || -n "${cmd_middle}" || -n "${cmd_right}" ]]; then
+    if ${has_commands}; then
       echo "    commands:"
-      [[ -n "${cmd_left}" ]] && echo "      left: \"${cmd_left}\""
-      [[ -n "${cmd_middle}" ]] && echo "      middle: \"${cmd_middle}\""
-      [[ -n "${cmd_right}" ]] && echo "      right: \"${cmd_right}\""
+      for cmd in "${commands[@]}"; do
+        echo "      - \"${cmd}\""
+      done
     fi
   } >> "${CONFIG_FILE}" 2>&1; then
     echo "Failed to update config file."

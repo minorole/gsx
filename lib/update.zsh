@@ -62,9 +62,31 @@ check_for_updates() {
   disown 2>/dev/null
 }
 
+# Compare versions: returns 0 if $1 > $2
+is_newer_version() {
+  local v1=$1 v2=$2
+  # Split by dots and compare each part
+  local IFS='.'
+  local -a parts1=(${=v1%%-*})  # Remove pre-release suffix
+  local -a parts2=(${=v2%%-*})
+
+  for i in 1 2 3; do
+    local p1=${parts1[$i]:-0}
+    local p2=${parts2[$i]:-0}
+    (( p1 > p2 )) && return 0
+    (( p1 < p2 )) && return 1
+  done
+  return 1  # Equal, not newer
+}
+
 # Display update notice
 show_update_notice() {
   local latest_version=$1
+
+  # Only show if latest is actually newer than current
+  if ! is_newer_version "${latest_version}" "${GSX_VERSION}"; then
+    return 0
+  fi
 
   echo ""
   echo "Update available: v${GSX_VERSION} -> v${latest_version}"

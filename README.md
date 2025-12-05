@@ -22,9 +22,9 @@
 
 gsx creates pre-configured [Ghostty](https://ghostty.org) terminal windows for your projects:
 
-- **3-column layout**: AI assistant | AI assistant | shell
-- **2-column layout**: AI assistant | shell
-- **Main + bottom**: AI assistant on top, shell below
+- **Dynamic layouts**: 2-10 panes in any row-based configuration
+- **Presets**: `duo`, `trio`, `quad`, `dashboard`, `stacked`, `wide`
+- **Custom**: `2-2` (grid), `1-3` (1 main + 3 below), `2-2-5-1`, etc.
 
 No more manually opening terminals, splitting panes, cd-ing to directories, and launching Claude/Aider/Copilot.
 
@@ -108,37 +108,60 @@ Config is stored in `~/.config/gsx/config.yaml`:
 
 ```yaml
 projects_root: ~/Projects
-default_layout: 3-col
+default_layout: quad    # or "2-2", "1-3", "duo", etc.
 
+# Array format for 4+ panes (spatial order: left-to-right, top-to-bottom)
 default_commands:
-  left: "claude"
-  middle: "claude"
-  right: ""
+  - "claude"
+  - "aider"
+  - "npm run dev"
+  - ""
 
 # Per-project overrides
 projects:
   my-web-app:
-    layout: 2-col
+    layout: dashboard    # 1 main top, 3 below
     commands:
-      left: "npm run dev"
-      right: ""
+      - "claude"
+      - "npm run dev"
+      - "npm test"
+      - "tail -f logs"
 
-  my-ai-project:
+  simple-project:
+    layout: duo          # 2 panes side-by-side
     commands:
-      left: "aider"
-      middle: "claude"
-      right: ""
+      - "claude"
+      - ""
 ```
 
 > **Tip:** Use `clear && claude` for a cleaner startup. For fully automated workflows, Claude supports `--dangerously-skip-permissions` (use with caution).
 
 ## Layouts
 
-| Layout | Panes | Best for |
-|--------|-------|----------|
-| `3-col` | AI \| AI \| shell | Heavy AI-assisted coding |
-| `2-col` | AI \| shell | Balanced workflow |
-| `main+bottom` | AI (top) \| shell (bottom) | Focus on AI output |
+### Presets
+
+| Alias | Layout | Panes | Description |
+|-------|--------|-------|-------------|
+| `duo` | `2` | 2 | Side-by-side |
+| `trio` | `3` | 3 | Three columns |
+| `stacked` | `1-1` | 2 | Top and bottom |
+| `quad` | `2-2` | 4 | 2x2 grid |
+| `dashboard` | `1-3` | 4 | 1 main top, 3 below |
+| `wide` | `3-1` | 4 | 3 top, 1 bottom |
+
+### Custom Layouts
+
+Use row notation: numbers separated by dashes, each number = panes in that row.
+
+```
+2-2     → 4 panes (2 top, 2 bottom)
+1-3     → 4 panes (1 top, 3 bottom)
+1-2-1   → 4 panes (1 top, 2 middle, 1 bottom)
+3-3-3   → 9 panes (3x3 grid)
+2-2-5-1 → 10 panes (complex layout)
+```
+
+**Limits**: Max 10 panes, max 4 rows.
 
 ## How it works
 
@@ -174,7 +197,7 @@ If you cloned the repo, you can also delete that directory.
 ## Roadmap
 
 - [ ] Session save/restore
-- [ ] More layout options (grid, custom)
+- [x] Dynamic layouts (grid, custom)
 - [ ] Linux support (xdotool)
 - [x] Homebrew tap
 
