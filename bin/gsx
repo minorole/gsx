@@ -16,6 +16,7 @@ source "${GSX_ROOT}/lib/help.zsh"
 source "${GSX_ROOT}/lib/config.zsh"
 source "${GSX_ROOT}/lib/projects.zsh"
 source "${GSX_ROOT}/lib/layouts.zsh"
+source "${GSX_ROOT}/lib/prompts.zsh"
 source "${GSX_ROOT}/lib/setup.zsh"
 
 # Global flags

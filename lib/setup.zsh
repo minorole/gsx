@@ -1,6 +1,84 @@
 # gsx setup wizard
 # Interactive configuration for first-time users
 
+# =============================================================================
+# Projects Root Selection (used only in setup_wizard)
+# =============================================================================
+
+# Prompt for projects root directory
+# Sets global: SELECTED_PROJECTS_ROOT
+prompt_projects_root() {
+  SELECTED_PROJECTS_ROOT=""
+
+  # Scan for common directories
+  local -a common_dirs=("Projects" "Developer" "Code" "dev" "code" "repos" "Sites" "workspace" "Documents" "Downloads")
+  local -a found_dirs=()
+  local dir
+
+  for dir in "${common_dirs[@]}"; do
+    [[ -d "${HOME}/${dir}" ]] && found_dirs+=("${HOME}/${dir}")
+  done
+
+  local choice
+
+  if (( ${#found_dirs[@]} > 0 )); then
+    echo "Possible project folders:"
+    local -i i=1
+    for dir in "${found_dirs[@]}"; do
+      echo "  ${i}) ${dir}"
+      i=$((i + 1))
+    done
+    echo "  ${i}) Other (enter path)"
+    echo ""
+    choice=""
+    prompt_input "Select [1]: " choice
+
+    if [[ -z "${choice}" || "${choice}" == "1" ]]; then
+      SELECTED_PROJECTS_ROOT="${found_dirs[1]}"
+    elif [[ "${choice}" =~ ^[0-9]+$ ]] && (( choice <= ${#found_dirs[@]} )); then
+      SELECTED_PROJECTS_ROOT="${found_dirs[choice]}"
+    fi
+  fi
+
+  # If no selection yet, ask for path
+  if [[ -z "${SELECTED_PROJECTS_ROOT}" ]]; then
+    local default_root="${HOME}/Projects"
+
+    while true; do
+      SELECTED_PROJECTS_ROOT=""
+      prompt_input "Projects folder [${default_root}]: " SELECTED_PROJECTS_ROOT
+      SELECTED_PROJECTS_ROOT="${SELECTED_PROJECTS_ROOT:-${default_root}}"
+      SELECTED_PROJECTS_ROOT="${SELECTED_PROJECTS_ROOT/#\~/${HOME}}"
+
+      # Validate: must start with /
+      if [[ "${SELECTED_PROJECTS_ROOT}" != /* ]]; then
+        echo "Invalid path. Must be absolute (start with / or ~)"
+        continue
+      fi
+
+      # If doesn't exist, confirm creation
+      if [[ ! -d "${SELECTED_PROJECTS_ROOT}" ]]; then
+        local confirm=""
+        prompt_input "Create '${SELECTED_PROJECTS_ROOT}'? [Y/n]: " confirm
+        if [[ "${confirm}" =~ ^[Nn]$ ]]; then
+          continue
+        fi
+        if ! mkdir -p "${SELECTED_PROJECTS_ROOT}" 2>&1; then
+          echo "Try a different path."
+          continue
+        fi
+        echo "Created."
+      fi
+
+      break
+    done
+  fi
+}
+
+# =============================================================================
+# Setup Wizard
+# =============================================================================
+
 setup_wizard() {
   echo ""
   echo "gsx setup"
@@ -20,164 +98,31 @@ setup_wizard() {
     echo ""
   fi
 
-  # Projects root - scan for common directories
-  local -a common_dirs=("Projects" "Developer" "Code" "dev" "code" "repos" "Sites" "workspace" "Documents" "Downloads")
-  local -a found_dirs=()
-  local dir
+  # Step 1: Projects root
+  prompt_projects_root
+  local projects_root="${SELECTED_PROJECTS_ROOT}"
+  echo ""
 
-  for dir in "${common_dirs[@]}"; do
-    [[ -d "${HOME}/${dir}" ]] && found_dirs+=("${HOME}/${dir}")
+  # Step 2: Layout selection
+  show_layout_menu "full"
+  while true; do
+    prompt_layout_choice "1"
+    [[ "${SELECTED_LAYOUT_VALID}" == true ]] && break
   done
 
-  local projects_root=""
-  local choice
+  local default_layout="${SELECTED_LAYOUT}"
+  local num_tabs="${SELECTED_NUM_TABS}"
 
-  if (( ${#found_dirs[@]} > 0 )); then
-    echo "Possible project folders:"
-    local -i i=1
-    for dir in "${found_dirs[@]}"; do
-      echo "  ${i}) ${dir}"
-      i=$((i + 1))
-    done
-    echo "  ${i}) Other (enter path)"
-    echo ""
-    choice=""
-    prompt_input "Select [1]: " choice
-
-    if [[ -z "${choice}" || "${choice}" == "1" ]]; then
-      projects_root="${found_dirs[1]}"
-    elif [[ "${choice}" =~ ^[0-9]+$ ]] && (( choice <= ${#found_dirs[@]} )); then
-      projects_root="${found_dirs[choice]}"
-    fi
-  fi
-
-  # If no selection yet, ask for path
-  if [[ -z "${projects_root}" ]]; then
-    local default_root="${HOME}/Projects"
-
-    while true; do
-      projects_root=""
-      prompt_input "Projects folder [${default_root}]: " projects_root
-      projects_root="${projects_root:-${default_root}}"
-      projects_root="${projects_root/#\~/${HOME}}"
-
-      # Validate: must start with /
-      if [[ "${projects_root}" != /* ]]; then
-        echo "Invalid path. Must be absolute (start with / or ~)"
-        continue
-      fi
-
-      # If doesn't exist, confirm creation
-      if [[ ! -d "${projects_root}" ]]; then
-        local confirm=""
-        prompt_input "Create '${projects_root}'? [Y/n]: " confirm
-        if [[ "${confirm}" =~ ^[Nn]$ ]]; then
-          continue
-        fi
-        if ! mkdir -p "${projects_root}" 2>&1; then
-          echo "Try a different path."
-          continue
-        fi
-        echo "Created."
-      fi
-
-      break
-    done
-  fi
+  # Step 3: Get pane/tab info and prompt for commands
+  get_layout_info_for_prompts "${default_layout}" "${num_tabs}"
 
   echo ""
-
-  # Layout selection
-  # Colors
-  local dim=$'\e[2m'
-  local cyan=$'\e[36m'
-  local reset=$'\e[0m'
-
-  echo "Layouts:"
-  echo "  ${dim}── Panes (split window) ──${reset}"
-  echo "  1) duo        Two panes side-by-side    [1|2]"
-  echo "  2) trio       Three panes side-by-side  [1|2|3]"
-  echo "  3) stacked    Two panes vertically      [1] / [2]"
-  echo "  4) quad       2x2 grid                  [1|2] / [3|4]"
-  echo "  5) dashboard  1 main + 3 below          [  1  ] / [2|3|4]"
-  echo "  6) wide       3 top + 1 bottom          [1|2|3] / [  4  ]"
-  echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
-  echo ""
-  echo "  ${cyan}── Tabs (separate tabs) ──${reset}"
-  echo "  ${cyan}8) tabs       One tab per command (up to 10)${reset}"
-  echo ""
-  local layout_choice=""
-  prompt_input "Default layout [1]: " layout_choice
-
-  local default_layout
-  local num_tabs=0
-  case "${layout_choice}" in
-    1|"") default_layout="duo" ;;
-    2) default_layout="trio" ;;
-    3) default_layout="stacked" ;;
-    4) default_layout="quad" ;;
-    5) default_layout="dashboard" ;;
-    6) default_layout="wide" ;;
-    7)
-      echo ""
-      echo "Custom layout: N-M-O (panes per row, max 10 panes, max 4 rows)"
-      echo "Examples: 2-2 (4 panes), 1-3 (4 panes), 2-3-1 (6 panes), 5-5 (10 panes)"
-      local custom_layout=""
-      prompt_input "Layout: " custom_layout
-      if validate_layout "${custom_layout}" 2>/dev/null; then
-        default_layout="${custom_layout}"
-      else
-        echo "Invalid layout. Using 'duo' instead."
-        default_layout="duo"
-      fi
-      ;;
-    8)
-      default_layout="tabs"
-      echo ""
-      local tabs_input=""
-      prompt_input "How many tabs? [2-10, default 4]: " tabs_input
-      if [[ -z "${tabs_input}" ]]; then
-        num_tabs=4
-      elif [[ "${tabs_input}" =~ ^[0-9]+$ ]] && (( tabs_input >= 2 && tabs_input <= 10 )); then
-        num_tabs="${tabs_input}"
-      else
-        echo "Invalid number. Using 4 tabs."
-        num_tabs=4
-      fi
-      ;;
-    *) default_layout="duo" ;;
-  esac
-
-  # Calculate number of panes/tabs for this layout
-  local num_panes
-  local -a pane_labels=()
-  local unit="pane"
-
-  if [[ "${default_layout}" == "tabs" ]]; then
-    unit="tab"
-    num_panes="${num_tabs}"
-    for ((i = 1; i <= num_tabs; i++)); do
-      pane_labels+=("Tab ${i}")
-    done
-  else
-    get_layout_info "${default_layout}"
-    num_panes=$LAYOUT_PANE_COUNT
-    pane_labels=("${LAYOUT_PANE_LABELS[@]}")
-  fi
-
-  echo ""
-  echo "Commands for each ${unit} (Enter = empty shell)"
+  echo "Commands for each ${PROMPT_UNIT} (Enter = empty shell)"
   echo "Examples: claude, aider, npm run dev, clear && claude"
   echo ""
 
-  local -a commands=()
-  local i=1
-  while (( i <= num_panes )); do
-    local cmd=""
-    prompt_input "  ${pane_labels[i]}: " cmd
-    commands+=("${cmd}")
-    i=$((i + 1))
-  done
+  prompt_pane_commands "${PROMPT_PANE_COUNT}" "${PROMPT_PANE_LABELS[@]}"
+  local -a commands=("${PROMPTED_COMMANDS[@]}")
 
   # Show summary and confirm
   echo ""
@@ -185,9 +130,9 @@ setup_wizard() {
   echo "  Folder: ${projects_root}"
   echo "  Layout: ${default_layout}"
   echo "  Commands:"
-  i=1
-  while (( i <= num_panes )); do
-    echo "    ${pane_labels[i]}: ${commands[i]:-<empty>}"
+  local i=1
+  while (( i <= PROMPT_PANE_COUNT )); do
+    echo "    ${PROMPT_PANE_LABELS[i]}: ${commands[i]:-<empty>}"
     i=$((i + 1))
   done
   echo ""
@@ -209,7 +154,7 @@ setup_wizard() {
   # Build commands section (always use array format for consistency)
   local commands_yaml=""
   i=1
-  while (( i <= num_panes )); do
+  while (( i <= PROMPT_PANE_COUNT )); do
     commands_yaml="${commands_yaml}  - \"${commands[i]}\"\n"
     i=$((i + 1))
   done
@@ -247,6 +192,10 @@ EOF
   echo ""
 }
 
+# =============================================================================
+# Per-Project Setup
+# =============================================================================
+
 # Setup per-project override
 setup_project() {
   local project_name=$1
@@ -256,75 +205,49 @@ setup_project() {
     exit 1
   fi
 
+  # Parse existing config to get default layout
+  parse_config
+
   echo ""
   echo "Configure: ${project_name}"
   echo "=========================="
   echo "(Enter = keep default)"
   echo ""
 
-  # Layout
-  echo "Layout:"
-  echo "  1) duo        2) trio       3) stacked"
-  echo "  4) quad       5) dashboard  6) wide"
-  echo "  7) custom"
-  local layout_choice=""
-  prompt_input "Choice [keep default]: " layout_choice
+  # Layout selection with compact menu (now includes tabs!)
+  show_layout_menu "compact"
+  while true; do
+    prompt_layout_choice ""  # empty default = keep current
+    [[ "${SELECTED_LAYOUT_VALID}" == true ]] && break
+  done
 
-  local project_layout=""
-  case "${layout_choice}" in
-    1) project_layout="duo" ;;
-    2) project_layout="trio" ;;
-    3) project_layout="stacked" ;;
-    4) project_layout="quad" ;;
-    5) project_layout="dashboard" ;;
-    6) project_layout="wide" ;;
-    7)
-      echo "Custom: N-M-O (max 10 panes, max 4 rows)"
-      local custom_layout=""
-      prompt_input "Layout: " custom_layout
-      if validate_layout "${custom_layout}" 2>/dev/null; then
-        project_layout="${custom_layout}"
-      else
-        echo "Invalid layout. Skipping layout override."
-      fi
-      ;;
-  esac
+  local project_layout="${SELECTED_LAYOUT}"
+  local num_tabs="${SELECTED_NUM_TABS}"
 
-  # Calculate panes for selected layout (or use default's pane count)
-  local -a pane_labels=()
-  local num_panes=0
-
+  # Determine which layout to use for command prompts
+  local effective_layout
   if [[ -n "${project_layout}" ]]; then
-    get_layout_info "${project_layout}"
-    num_panes=$LAYOUT_PANE_COUNT
-    pane_labels=("${LAYOUT_PANE_LABELS[@]}")
+    effective_layout="${project_layout}"
+  else
+    effective_layout="${DEFAULT_LAYOUT}"
+    echo ""
+    echo "Using default layout: ${effective_layout}"
   fi
+
+  # Get pane/tab info for the effective layout
+  get_layout_info_for_prompts "${effective_layout}" "${num_tabs}"
 
   # Commands
   echo ""
-  local -a commands=()
-  local has_commands=false
+  echo "Commands (Enter = keep default):"
+  prompt_pane_commands "${PROMPT_PANE_COUNT}" "${PROMPT_PANE_LABELS[@]}"
 
-  if [[ ${num_panes} -gt 0 ]]; then
-    echo "Commands (Enter = keep default):"
-    local i=1
-    while (( i <= num_panes )); do
-      local cmd=""
-      prompt_input "  ${pane_labels[i]}: " cmd
-      commands+=("${cmd}")
-      [[ -n "${cmd}" ]] && has_commands=true
-      i=$((i + 1))
-    done
-  else
-    echo "Commands (Enter = keep default, applies to default layout):"
-    for label in "Pane 1" "Pane 2" "Pane 3" "Pane 4"; do
-      local cmd=""
-      prompt_input "  ${label}: " cmd
-      [[ -z "${cmd}" ]] && break
-      commands+=("${cmd}")
-      has_commands=true
-    done
-  fi
+  # Check if any commands were actually entered
+  local has_commands=false
+  local -a commands=("${PROMPTED_COMMANDS[@]}")
+  for cmd in "${commands[@]}"; do
+    [[ -n "${cmd}" ]] && has_commands=true && break
+  done
 
   # Append to config
   if ! {
