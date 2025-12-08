@@ -1,8 +1,8 @@
-# gsx update checker
+# gpane update checker
 # Checks GitHub for new versions
 
-GSX_REPO="minorole/gsx"
-GSX_UPDATE_CACHE="${HOME}/.cache/gsx/update-check"
+GPANE_REPO="minorole/gsx"
+GPANE_UPDATE_CACHE="${HOME}/.cache/gpane/update-check"
 
 # Validate version string (basic semver: X.Y.Z with optional pre-release)
 is_valid_version() {
@@ -17,23 +17,23 @@ check_for_updates() {
   fi
 
   # Create cache directory if needed
-  mkdir -p "$(dirname "${GSX_UPDATE_CACHE}")"
+  mkdir -p "$(dirname "${GPANE_UPDATE_CACHE}")"
 
   local now=$(date +%s)
   local cache_max_age=86400  # 24 hours
 
   # Check if cache exists and is fresh
-  if [[ -f "${GSX_UPDATE_CACHE}" ]]; then
-    local cache_time=$(head -1 "${GSX_UPDATE_CACHE}" 2>/dev/null || echo 0)
+  if [[ -f "${GPANE_UPDATE_CACHE}" ]]; then
+    local cache_time=$(head -1 "${GPANE_UPDATE_CACHE}" 2>/dev/null || echo 0)
     local cache_age=$((now - cache_time))
 
     if (( cache_age < cache_max_age )); then
       # Cache is fresh, show cached result if update available
-      local cached_version=$(tail -1 "${GSX_UPDATE_CACHE}" 2>/dev/null)
+      local cached_version=$(tail -1 "${GPANE_UPDATE_CACHE}" 2>/dev/null)
       # Validate cached version; clear corrupted cache
       if ! is_valid_version "${cached_version}"; then
-        rm -f "${GSX_UPDATE_CACHE}"
-      elif [[ "${cached_version}" != "${GSX_VERSION}" ]]; then
+        rm -f "${GPANE_UPDATE_CACHE}"
+      elif [[ "${cached_version}" != "${GPANE_VERSION}" ]]; then
         show_update_notice "${cached_version}"
       fi
       return 0
@@ -43,19 +43,19 @@ check_for_updates() {
   # Fetch latest version in background (don't block)
   {
     local latest=$(curl -sf --max-time 3 \
-      "https://api.github.com/repos/${GSX_REPO}/releases/latest" 2>/dev/null \
+      "https://api.github.com/repos/${GPANE_REPO}/releases/latest" 2>/dev/null \
       | grep '"tag_name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
 
     # If no releases, try tags
     if [[ -z "${latest}" ]]; then
       latest=$(curl -sf --max-time 3 \
-        "https://api.github.com/repos/${GSX_REPO}/tags" 2>/dev/null \
+        "https://api.github.com/repos/${GPANE_REPO}/tags" 2>/dev/null \
         | grep '"name"' | head -1 | cut -d'"' -f4 | sed 's/^v//')
     fi
 
     # Save to cache atomically (only if valid version)
     if is_valid_version "${latest}"; then
-      printf '%s\n%s\n' "${now}" "${latest}" > "${GSX_UPDATE_CACHE}"
+      printf '%s\n%s\n' "${now}" "${latest}" > "${GPANE_UPDATE_CACHE}"
     fi
   } &>/dev/null &
   disown 2>/dev/null
@@ -83,21 +83,21 @@ show_update_notice() {
   local latest_version=$1
 
   # Only show if latest is actually newer than current
-  if ! is_newer_version "${latest_version}" "${GSX_VERSION}"; then
+  if ! is_newer_version "${latest_version}" "${GPANE_VERSION}"; then
     return 0
   fi
 
   echo ""
-  echo "Update available: v${GSX_VERSION} -> v${latest_version}"
+  echo "Update available: v${GPANE_VERSION} -> v${latest_version}"
   echo ""
 
   # Detect install method and show appropriate update command
-  if command -v brew &>/dev/null && brew list gsx &>/dev/null 2>&1; then
-    echo "  Update with: brew upgrade gsx"
-  elif [[ -d "${HOME}/.local/share/gsx/.git" ]]; then
-    echo "  Update with: cd ~/.local/share/gsx && git pull && ./install.sh"
+  if command -v brew &>/dev/null && brew list gpane &>/dev/null 2>&1; then
+    echo "  Run: brew upgrade gpane"
+  elif command -v brew &>/dev/null && brew list gsx &>/dev/null 2>&1; then
+    echo "  Run: brew upgrade gsx"
   else
-    echo "  Update with: cd <gsx-repo> && git pull && ./install.sh"
+    echo "  Run: curl -sSL https://raw.githubusercontent.com/minorole/gsx/main/install.sh | bash"
   fi
   echo ""
 }

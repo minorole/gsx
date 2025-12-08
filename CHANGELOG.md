@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.4] - 2025-12-08
+
+### Added
+
+- **`--here` flag**: Open panes in current Ghostty window instead of creating a new one
+  - Alias: `--current-window`
+  - When opening multiple projects, only the first uses the current window
+  - Example: `gpane myproject --here`
+- Automatic migration from old `gsx` installation when running installer
+- Compatibility wrapper for `gsx` command with daily rename notice
+
+### Changed
+
+- **Renamed `gsx` to `gpane`** to avoid conflict with Ghostscript
+  - Primary command is now `gpane`
+  - `gsx` command still works as a compatibility wrapper (shows daily reminder)
+  - Config location unchanged: `~/.config/gsx/config.yaml`
+  - All existing configurations continue to work
+- Installation location changed from `~/.local/share/gsx` to `~/.local/share/gpane`
+- Update command now shows one-liner: `curl -sSL https://raw.githubusercontent.com/minorole/gsx/main/install.sh | bash`
+
 ## [0.2.3] - 2025-12-05
 
 ### Fixed
@@ -104,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.4]: https://github.com/minorole/gsx/releases/tag/v0.2.4
 [0.2.3]: https://github.com/minorole/gsx/releases/tag/v0.2.3
 [0.2.2]: https://github.com/minorole/gsx/releases/tag/v0.2.2
 [0.2.1]: https://github.com/minorole/gsx/releases/tag/v0.2.1

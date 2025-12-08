@@ -1,10 +1,11 @@
-# gsx configuration
-# Location: ~/.config/gsx/config.yaml
+# gpane configuration
+# Location: ~/.config/gpane/config.yaml (new installs)
+#           ~/.config/gsx/config.yaml (existing users)
 
 # Root directory containing your projects
 projects_root: ~/Projects
 
-# Default layout (see 'gsx help' for all options)
+# Default layout (see 'gpane help' for all options)
 # Pane layouts: duo, trio, quad, dashboard, stacked, wide, or row notation (2-2, 1-3, etc.)
 # Tab layout: tabs (one command per tab, up to 10)
 default_layout: duo

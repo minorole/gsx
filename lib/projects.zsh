@@ -1,4 +1,4 @@
-# gsx project management
+# gpane project management
 # Handles project resolution, listing, and selection
 
 # Resolve a project name or path to absolute path

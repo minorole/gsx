@@ -1,12 +1,14 @@
-# gsx core
+# gpane core
 # Version, constants, and preflight checks
+#
+# Note: GPANE_ROOT is set by bin/gpane before sourcing this file
 
-GSX_VERSION="$(cat "${GSX_ROOT}/VERSION" 2>/dev/null || echo "dev")"
+GPANE_VERSION="$(cat "${GPANE_ROOT}/VERSION" 2>/dev/null || echo "dev")"
 
 # Preflight checks (macOS, osascript)
 preflight_check() {
   if [[ "$(uname)" != "Darwin" ]]; then
-    echo "Error: gsx only supports macOS."
+    echo "Error: gpane only supports macOS."
     echo "Linux support is planned for a future release."
     exit 1
   fi
@@ -31,6 +33,6 @@ check_ghostty() {
   echo ""
   echo "Install from: https://ghostty.org"
   echo ""
-  echo "After installing, run 'gsx' again."
+  echo "After installing, run 'gpane' again."
   exit 1
 }

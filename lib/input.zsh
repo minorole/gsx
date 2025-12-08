@@ -1,4 +1,4 @@
-# gsx input handling
+# gpane input handling
 # User input with line editing support
 
 # Read user input with line editing support when available

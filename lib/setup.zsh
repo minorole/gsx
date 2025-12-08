@@ -1,4 +1,4 @@
-# gsx setup wizard
+# gpane setup wizard
 # Interactive configuration for first-time users
 
 # =============================================================================
@@ -81,7 +81,7 @@ prompt_projects_root() {
 
 setup_wizard() {
   echo ""
-  echo "gsx setup"
+  echo "gpane setup"
   echo "============"
   echo ""
 
@@ -141,7 +141,7 @@ setup_wizard() {
 
   if [[ "${save_confirm}" =~ ^[Nn]$ ]]; then
     echo ""
-    echo "Setup cancelled. Run 'gsx setup' to try again."
+    echo "Setup cancelled. Run 'gpane setup' to try again."
     return 0
   fi
 
@@ -160,7 +160,7 @@ setup_wizard() {
   done
 
   cat > "${CONFIG_FILE}" <<EOF
-# gsx config - edit or run 'gsx setup' again
+# gpane config - edit or run 'gpane setup' again
 projects_root: ${projects_root}
 default_layout: ${default_layout}
 
@@ -186,9 +186,9 @@ EOF
   echo "Saved: ${CONFIG_FILE}"
   echo ""
   echo "Usage:"
-  echo "  gsx              # Pick a project"
-  echo "  gsx <project>    # Open specific project"
-  echo "  gsx list         # List projects"
+  echo "  gpane              # Pick a project"
+  echo "  gpane <project>    # Open specific project"
+  echo "  gpane list         # List projects"
   echo ""
 }
 
@@ -201,7 +201,7 @@ setup_project() {
   local project_name=$1
 
   if ! config_exists; then
-    echo "Run 'gsx setup' first."
+    echo "Run 'gpane setup' first."
     exit 1
   fi
 

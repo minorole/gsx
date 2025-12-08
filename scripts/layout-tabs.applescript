@@ -1,14 +1,16 @@
--- gsx tabs layout: creates multiple tabs, one command per tab
--- Args: projectDir, cmd1, cmd2, cmd3, ...
+-- gpane tabs layout: creates multiple tabs, one command per tab
+-- Args: reuseWindow, projectDir, cmd1, cmd2, cmd3, ...
+-- reuseWindow: "true" to use current window, "false" to create new
 -- First tab uses existing tab in new window, subsequent tabs use Cmd+T
 
 on run argv
-    set projectDir to item 1 of argv
+    set reuseWindow to item 1 of argv
+    set projectDir to item 2 of argv
 
-    -- Parse commands (items 2 onward)
+    -- Parse commands (items 3 onward)
     set commands to {}
-    if (count of argv) > 1 then
-        repeat with i from 2 to (count of argv)
+    if (count of argv) > 2 then
+        repeat with i from 3 to (count of argv)
             set end of commands to item i of argv
         end repeat
     end if
@@ -30,9 +32,11 @@ on run argv
         end if
 
         tell process "Ghostty"
-            -- New window (this gives us the first tab)
-            keystroke "n" using {command down}
-            delay 0.6
+            -- New window (unless reusing current)
+            if reuseWindow is "false" then
+                keystroke "n" using {command down}
+                delay 0.6
+            end if
 
             -- Process each tab
             repeat with tabIdx from 1 to numTabs

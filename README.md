@@ -1,116 +1,150 @@
 <p align="center">
-  <img src="assets/logo.svg" width="80" alt="gsx logo">
+  <img src="assets/logo.svg" width="80" alt="gpane logo">
 </p>
 
-<h1 align="center">gsx</h1>
+<h1 align="center">gpane</h1>
 
 <p align="center">
-  <strong>Ghostty Session Manager</strong> — Launch AI-ready development environments with one command.
+  <strong>Ghostty Session Manager</strong><br>
+  Launch AI-ready terminal environments with one command
 </p>
 
 <p align="center">
-  <code>gsx</code> — Open multiple projects in parallel, each with your configured layout
+  <a href="#installation">Install</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#layouts">Layouts</a> •
+  <a href="#configuration">Config</a>
 </p>
 
 <br>
 
 <p align="center">
-  <img src="assets/demo.gif" alt="gsx demo" width="700">
+  <img src="assets/demo.gif" alt="gpane demo" width="640">
 </p>
+
+<br>
 
 ## What it does
 
-gsx creates pre-configured [Ghostty](https://ghostty.org) terminal windows for your projects:
+gpane creates pre-configured [Ghostty](https://ghostty.org) terminal windows for your projects — multiple panes, each running the command you want, all from a single invocation.
 
-- **Dynamic layouts**: 2-10 panes in any row-based configuration
-- **Presets**: `duo`, `trio`, `quad`, `dashboard`, `stacked`, `wide`
-- **Custom**: `2-2` (grid), `1-3` (1 main + 3 below), `2-2-5-1`, etc.
+```bash
+gpane myproject     # Opens configured layout with Claude, Aider, shell, etc.
+gpane               # Interactive picker — type "1 3 5" to open multiple projects
+```
 
-No more manually opening terminals, splitting panes, cd-ing to directories, and launching Claude/Aider/Copilot.
+No more manually opening terminals, splitting panes, navigating to directories, and launching tools.
 
 ## Installation
 
-### Homebrew
-
+**Homebrew** (recommended):
 ```bash
-brew install minorole/tap/gsx
+brew install minorole/tap/gpane
 ```
 
-### From source
+**One-liner**:
+```bash
+curl -sSL https://raw.githubusercontent.com/minorole/gsx/main/install.sh | bash
+```
+
+<details>
+<summary><strong>From source</strong></summary>
 
 ```bash
 git clone https://github.com/minorole/gsx.git
-cd gsx
-./install.sh
+cd gsx && ./install.sh
 ```
+</details>
 
-### Requirements
+<details>
+<summary><strong>Requirements</strong></summary>
 
 - macOS (uses AppleScript for window management)
 - [Ghostty](https://ghostty.org) terminal
 - zsh
-- **Accessibility permission** for your terminal (see below)
+- Accessibility permission for your terminal (System Settings → Privacy & Security → Accessibility)
+</details>
 
-### Granting Accessibility Permission
+<details>
+<summary><strong>Upgrading from gsx?</strong></summary>
 
-gsx uses AppleScript to control Ghostty windows. macOS requires you to grant accessibility permission:
+In v0.2.4, `gsx` was renamed to `gpane` to avoid conflict with Ghostscript.
 
-1. Open **System Settings** → **Privacy & Security** → **Accessibility**
-2. Click the **+** button
-3. Add your terminal app (Terminal.app, iTerm, or wherever you run `gsx`)
-4. Ensure the checkbox is enabled
+Just run the installer — it automatically migrates your installation:
+```bash
+curl -sSL https://raw.githubusercontent.com/minorole/gsx/main/install.sh | bash
+```
 
-Without this permission, gsx will fail to create window splits.
+Your config is preserved. The old `gsx` command still works (shows a daily reminder to use `gpane`).
+</details>
 
 ## Usage
 
-### First-time setup
-
+**First-time setup:**
 ```bash
-gsx setup
+gpane setup
 ```
 
-This interactive wizard will ask for:
-- Your projects folder (e.g., `~/Projects`)
-- Default layout (3-col, 2-col, main+bottom)
-- Commands for each pane
+The wizard asks for your projects folder, default layout, and commands for each pane.
 
-### Launch a session
-
+**Launch a session:**
 ```bash
-gsx                     # Interactive picker — type "1 3 5" to open multiple projects in parallel
-gsx myproject           # Launch session for 'myproject'
+gpane                     # Interactive picker
+gpane myproject           # Open in new window
+gpane myproject --here    # Open in current Ghostty window
+gpane myproject --dry-run # Preview without opening windows
 ```
 
-### Per-project configuration
-
+**Per-project config:**
 ```bash
-gsx setup myproject     # Configure overrides for 'myproject'
+gpane setup myproject     # Override layout/commands for this project
 ```
 
-This lets you set different layouts or commands for specific projects.
-
-### Other commands
-
+**Other commands:**
 ```bash
-gsx list                # List all projects
-gsx config              # Show current configuration
-gsx help                # Show help
-gsx myproject --dry-run # Preview without opening windows
-gsx ./help              # Open project with reserved name
+gpane list      # List all projects
+gpane config    # Show current configuration
+gpane help      # Show help
+gpane version   # Show version
 ```
 
-**Reserved names:** `help`, `setup`, `config`, `list`, `uninstall`, `version`. Use `./` prefix if your project has one of these names.
+## Layouts
+
+### Presets
+
+| Preset | Panes | Description |
+|--------|-------|-------------|
+| `duo` | 2 | Side-by-side |
+| `trio` | 3 | Three columns |
+| `stacked` | 2 | Top and bottom |
+| `quad` | 4 | 2×2 grid |
+| `dashboard` | 4 | 1 main top, 3 below |
+| `wide` | 4 | 3 top, 1 bottom |
+| `tabs` | 1-10 | Multiple Ghostty tabs |
+
+### Custom layouts
+
+Row notation — numbers separated by dashes, each number = panes in that row:
+
+```
+2-2     → 4 panes (2 top, 2 bottom)
+1-3     → 4 panes (1 top, 3 bottom)
+1-2-1   → 4 panes (1 top, 2 middle, 1 bottom)
+3-3-3   → 9 panes (3×3 grid)
+2-2-5-1 → 10 panes
+```
+
+Max 10 panes, max 4 rows.
 
 ## Configuration
 
-Config is stored in `~/.config/gsx/config.yaml`:
+Config lives at `~/.config/gpane/config.yaml` (new installs) or `~/.config/gsx/config.yaml` (existing users):
 
 ```yaml
 projects_root: ~/Projects
-default_layout: quad    # or "2-2", "1-3", "duo", etc.
+default_layout: quad
 
-# Array format for 4+ panes (spatial order: left-to-right, top-to-bottom)
+# Commands for each pane (left-to-right, top-to-bottom)
 default_commands:
   - "claude"
   - "aider"
@@ -120,7 +154,7 @@ default_commands:
 # Per-project overrides
 projects:
   my-web-app:
-    layout: dashboard    # 1 main top, 3 below
+    layout: dashboard
     commands:
       - "claude"
       - "npm run dev"
@@ -128,85 +162,27 @@ projects:
       - "tail -f logs"
 
   simple-project:
-    layout: duo          # 2 panes side-by-side
+    layout: duo
     commands:
       - "claude"
       - ""
 ```
 
-> **Tip:** Use `clear && claude` for a cleaner startup. For fully automated workflows, Claude supports `--dangerously-skip-permissions` (use with caution).
-
-## Layouts
-
-### Presets
-
-| Alias | Layout | Panes | Description |
-|-------|--------|-------|-------------|
-| `duo` | `2` | 2 | Side-by-side |
-| `trio` | `3` | 3 | Three columns |
-| `stacked` | `1-1` | 2 | Top and bottom |
-| `quad` | `2-2` | 4 | 2x2 grid |
-| `dashboard` | `1-3` | 4 | 1 main top, 3 below |
-| `wide` | `3-1` | 4 | 3 top, 1 bottom |
-
-### Custom Layouts
-
-Use row notation: numbers separated by dashes, each number = panes in that row.
-
-```
-2-2     → 4 panes (2 top, 2 bottom)
-1-3     → 4 panes (1 top, 3 bottom)
-1-2-1   → 4 panes (1 top, 2 middle, 1 bottom)
-3-3-3   → 9 panes (3x3 grid)
-2-2-5-1 → 10 panes (complex layout)
-```
-
-**Limits**: Max 10 panes, max 4 rows.
-
-## How it works
-
-gsx uses AppleScript to:
-1. Open a new Ghostty window
-2. `cd` to your project directory
-3. Create splits based on your layout
-4. Run configured commands in each pane
-
-All panes inherit the project directory, so you're ready to code immediately.
-
-## Tips
-
-**Avoid leftover terminal:** When you run `gsx` from a terminal, that terminal stays open. To avoid this:
-- Run from Spotlight/Alfred/Raycast instead
-- Or use `gsx myproject && exit` to auto-close
-
 ## Uninstalling
 
-To completely remove gsx:
-
 ```bash
-gsx uninstall
+gpane uninstall
 ```
 
-This will:
-- Remove program files (`~/.local/share/gsx/`)
-- Remove the symlink (`~/.local/bin/gsx`)
-- Optionally remove your config (`~/.config/gsx/`)
-
-If you cloned the repo, you can also delete that directory.
-
-## Roadmap
-
-- [ ] Session save/restore
-- [x] Dynamic layouts (grid, custom)
-- [ ] Linux support (xdotool)
-- [x] Homebrew tap
+Removes program files and symlink. Optionally removes your config.
 
 ## License
 
 MIT — see [LICENSE](LICENSE)
 
-## Credits
+---
 
-Built for the [Ghostty](https://ghostty.org) terminal by Mitchell Hashimoto.
-
-Inspired by the friction of setting up AI coding environments every. single. time.
+<p align="center">
+  Built for <a href="https://ghostty.org">Ghostty</a> by Mitchell Hashimoto.<br>
+  <sub>Inspired by the friction of setting up AI coding environments every. single. time.</sub>
+</p>

@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
-# gsx layout tests
+# gpane layout tests
 # Run: ./tests/test-layouts.zsh
 
 # Source the layouts lib
 SCRIPT_DIR="${0:A:h}"
-GSX_ROOT="${SCRIPT_DIR:h}"
-source "${GSX_ROOT}/lib/layouts.zsh"
+GPANE_ROOT="${SCRIPT_DIR:h}"
+source "${GPANE_ROOT}/lib/layouts.zsh"
 
 # Test counter
 TESTS_RUN=0

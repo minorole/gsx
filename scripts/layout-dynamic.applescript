@@ -1,17 +1,19 @@
--- gsx dynamic layout: handles any row-based pane configuration
--- Args: projectDir, layoutSpec, cmd1, cmd2, cmd3, ...
+-- gpane dynamic layout: handles any row-based pane configuration
+-- Args: reuseWindow, projectDir, layoutSpec, cmd1, cmd2, cmd3, ...
+-- reuseWindow: "true" to use current window, "false" to create new
 -- layoutSpec: "2-2" or "1-3" etc.
 -- Commands are in SPATIAL order (left-to-right, top-to-bottom)
 -- Commands are typed DURING Phase 2, eliminating unreliable Phase 4 navigation
 
 on run argv
-    set projectDir to item 1 of argv
-    set layoutSpec to item 2 of argv
+    set reuseWindow to item 1 of argv
+    set projectDir to item 2 of argv
+    set layoutSpec to item 3 of argv
 
-    -- Parse commands (items 3 onward)
+    -- Parse commands (items 4 onward)
     set commands to {}
-    if (count of argv) > 2 then
-        repeat with i from 3 to (count of argv)
+    if (count of argv) > 3 then
+        repeat with i from 4 to (count of argv)
             set end of commands to item i of argv
         end repeat
     end if
@@ -41,9 +43,11 @@ on run argv
         end if
 
         tell process "Ghostty"
-            -- New window
-            keystroke "n" using {command down}
-            delay 0.6
+            -- New window (unless reusing current)
+            if reuseWindow is "false" then
+                keystroke "n" using {command down}
+                delay 0.6
+            end if
 
             -- cd to project directory (this is pane 1, spatial position 0)
             -- Use quoted form to safely handle paths with apostrophes/special chars

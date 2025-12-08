@@ -1,8 +1,8 @@
-# gsx layout functions
+# gpane layout functions
 # Handles different pane configurations in Ghostty via AppleScript
 
-# Scripts directory (relative to GSX_ROOT, set in bin/gsx)
-SCRIPTS_DIR="${GSX_ROOT}/scripts"
+# Scripts directory (relative to GPANE_ROOT, set in bin/gpane)
+SCRIPTS_DIR="${GPANE_ROOT}/scripts"
 
 # =============================================================================
 # Layout Aliases & Resolution
@@ -135,7 +135,8 @@ get_layout_info() {
 layout_tabs() {
     local project_name=$1
     local project_dir=$2
-    shift 2
+    local reuse_window=$3
+    shift 3
     local -a cmds=("$@")
 
     local label="[${project_name}]"
@@ -152,7 +153,7 @@ layout_tabs() {
         cmds=("${cmds[@]:0:10}")
     fi
 
-    run_layout "layout-tabs" "${label}" "${project_dir}" "${cmds[@]}"
+    run_layout "layout-tabs" "${label}" "${reuse_window}" "${project_dir}" "${cmds[@]}"
 }
 
 # Check if layout is tabs mode
@@ -174,7 +175,8 @@ layout_dynamic() {
     local project_name=$1
     local project_dir=$2
     local layout_spec=$3
-    shift 3
+    local reuse_window=$4
+    shift 4
     local -a spatial_cmds=("$@")
 
     local label="[${project_name}]"
@@ -186,7 +188,7 @@ layout_dynamic() {
     fi
 
     # Pass commands directly in spatial order - AppleScript handles them inline
-    run_layout "layout-dynamic" "${label}" "${project_dir}" "${layout_spec}" "${spatial_cmds[@]}"
+    run_layout "layout-dynamic" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${spatial_cmds[@]}"
 }
 
 # Run a layout script with progress dots

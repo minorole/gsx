@@ -1,4 +1,4 @@
-# gsx shared prompt functions
+# gpane shared prompt functions
 # Centralized UI prompts for setup wizard and project configuration
 
 # =============================================================================
