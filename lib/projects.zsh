@@ -21,18 +21,22 @@ resolve_project_dir() {
     fi
     resolved=$(cd "${input}" && pwd)
   else
-    # Project name - look in PROJECTS_ROOT
-    if [[ ! -d "${PROJECTS_ROOT}/${input}" ]]; then
-      echo "Error: Project '${input}' not found in '${PROJECTS_ROOT}'" >&2
+    # Project name - look in PROJECTS_ROOT first, then current directory
+    if [[ -d "${PROJECTS_ROOT}/${input}" ]]; then
+      resolved=$(cd "${PROJECTS_ROOT}/${input}" && pwd)
+    elif [[ -d "${input}" ]]; then
+      # Fallback: try current directory
+      resolved=$(cd "${input}" && pwd)
+    else
+      echo "Error: Project '${input}' not found in '${PROJECTS_ROOT}' or current directory" >&2
       return 1
     fi
-    resolved=$(cd "${PROJECTS_ROOT}/${input}" && pwd)
   fi
 
   printf '%s\n' "${resolved}"
 }
 
-# List all projects (for gsx list command)
+# List all projects (for gpane list command)
 list_projects() {
   if [[ ! -d "${PROJECTS_ROOT}" ]]; then
     echo "Error: Projects root '${PROJECTS_ROOT}' does not exist" >&2

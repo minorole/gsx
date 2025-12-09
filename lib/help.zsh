@@ -8,7 +8,7 @@ gpane - Ghostty Session Manager v${GPANE_VERSION}
 
 Usage:
   gpane                     Interactive picker (type "1 3 5" to open multiple)
-  gpane <project>           Launch session for project
+  gpane <project>           Launch session (searches projects_root, then current dir)
   gpane list                List all projects
   gpane setup               Run setup wizard
   gpane setup <project>     Configure project-specific overrides
@@ -41,6 +41,7 @@ Examples:
   gpane myproject --dry-run # Preview without launching
   gpane list                # See all projects
   gpane ./help              # Open project named 'help' (use ./ for reserved names)
+  cd ~/monorepo && gpane frontend  # Open nested project from current directory
 
 Requirements:
   - macOS (uses AppleScript for window management)

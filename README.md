@@ -93,6 +93,9 @@ gpane                     # Interactive picker
 gpane myproject           # Open in new window
 gpane myproject --here    # Open in current Ghostty window
 gpane myproject --dry-run # Preview without opening windows
+
+# Nested projects — works from any directory
+cd ~/monorepo && gpane frontend
 ```
 
 **Per-project config:**

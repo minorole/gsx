@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.5] - 2025-12-08
+
+### Added
+
+- **Nested project support**: gpane now checks the current directory when a project isn't found in `projects_root`
+  - `cd ~/monorepo && gpane frontend` just works
+  - `projects_root` takes priority when a name exists in both places
+  - Use `./name` to explicitly open from current directory
+
 ## [0.2.4] - 2025-12-08
 
 ### Added
@@ -125,6 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.5]: https://github.com/minorole/gsx/releases/tag/v0.2.5
 [0.2.4]: https://github.com/minorole/gsx/releases/tag/v0.2.4
 [0.2.3]: https://github.com/minorole/gsx/releases/tag/v0.2.3
 [0.2.2]: https://github.com/minorole/gsx/releases/tag/v0.2.2
