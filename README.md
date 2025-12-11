@@ -171,6 +171,22 @@ projects:
       - ""
 ```
 
+## Known Issues
+
+### Split panes may start in wrong directory
+
+On some systems, Ghostty splits happen faster than the initial `cd` completes, causing panes to inherit the wrong working directory.
+
+**Workaround**: Prepend `cd` to your commands in config:
+
+```yaml
+default_commands:
+  - "cd ~/Projects/myapp && claude"
+  - "cd ~/Projects/myapp && npm run dev"
+```
+
+**Upstream fix**: Ghostty PR [#9158](https://github.com/ghostty-org/ghostty/pull/9158) adds `split-inherit-working-directory` option. Once merged, gpane will support this natively.
+
 ## Uninstalling
 
 ```bash
