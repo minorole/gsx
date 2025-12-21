@@ -35,8 +35,12 @@ on run argv
             -- New window (unless reusing current)
             if reuseWindow is "false" then
                 keystroke "n" using {command down}
-                delay 0.6
+                delay 1.0 -- Increased for more reliable window creation
             end if
+
+            -- Ensure focused before starting setup
+            set frontmost to true
+            delay 0.5
 
             -- Process each tab
             repeat with tabIdx from 1 to numTabs
@@ -47,17 +51,19 @@ on run argv
                 end if
 
                 -- cd to project directory
-                keystroke "cd " & quoted form of projectDir
+                set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+                keystroke "v" using {command down}
                 key code 36 -- Enter
-                delay 0.3
+                delay 0.5
 
                 -- Run command if provided
                 if tabIdx <= (count of commands) then
                     set cmd to item tabIdx of commands
                     if cmd is not "" then
-                        keystroke cmd
+                        set the clipboard to cmd
+                        keystroke "v" using {command down}
                         key code 36 -- Enter
-                        delay 0.25
+                        delay 0.4
                     end if
                 end if
             end repeat

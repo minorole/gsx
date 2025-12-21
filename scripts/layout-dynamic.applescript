@@ -46,14 +46,18 @@ on run argv
             -- New window (unless reusing current)
             if reuseWindow is "false" then
                 keystroke "n" using {command down}
-                delay 0.6
+                delay 1.0 -- Increased for more reliable window creation
             end if
 
+            -- Ensure focused before starting setup
+            set frontmost to true
+            delay 0.5
+
             -- cd to project directory (this is pane 1, spatial position 0)
-            -- Use quoted form to safely handle paths with apostrophes/special chars
-            keystroke "cd " & quoted form of projectDir
+            set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+            keystroke "v" using {command down}
             key code 36 -- Enter
-            delay 0.3
+            delay 0.5
 
             -- PHASE 1: Create row spine (n-1 vertical splits)
             -- This creates one anchor pane per row
@@ -83,9 +87,10 @@ on run argv
                 if spatialIdx <= (count of commands) then
                     set cmd to item spatialIdx of commands
                     if cmd is not "" then
-                        keystroke cmd
+                        set the clipboard to cmd
+                        keystroke "v" using {command down}
                         key code 36 -- Enter
-                        delay 0.25
+                        delay 0.4 -- Reliable completion delay
                     end if
                 end if
                 set spatialIdx to spatialIdx + 1
@@ -94,15 +99,16 @@ on run argv
                 if panesInRow > 1 then
                     repeat panesInRow - 1 times
                         keystroke "d" using {command down} -- Split right
-                        delay 0.4
+                        delay 0.6 -- Increased for split stability
 
                         -- Now in the new split pane, type its command
                         if spatialIdx <= (count of commands) then
                             set cmd to item spatialIdx of commands
                             if cmd is not "" then
-                                keystroke cmd
+                                set the clipboard to cmd
+                                keystroke "v" using {command down}
                                 key code 36 -- Enter
-                                delay 0.25
+                                delay 0.4
                             end if
                         end if
                         set spatialIdx to spatialIdx + 1
