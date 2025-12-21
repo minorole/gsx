@@ -7,6 +7,9 @@ on run argv
     set reuseWindow to item 1 of argv
     set projectDir to item 2 of argv
 
+    -- Save current clipboard to restore later
+    set originalClipboard to the clipboard as record
+
     -- Parse commands (items 3 onward)
     set commands to {}
     if (count of argv) > 2 then
@@ -71,6 +74,9 @@ on run argv
             -- Go back to first tab (Cmd+1)
             delay 0.2
             keystroke "1" using {command down}
+
+            -- Restore original clipboard
+            set the clipboard to originalClipboard
         end tell
     end tell
 end run

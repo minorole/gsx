@@ -10,6 +10,9 @@ on run argv
     set projectDir to item 2 of argv
     set layoutSpec to item 3 of argv
 
+    -- Save current clipboard to restore later
+    set originalClipboard to the clipboard as record
+
     -- Parse commands (items 4 onward)
     set commands to {}
     if (count of argv) > 3 then
@@ -152,6 +155,9 @@ on run argv
                 key code 123 using {command down, option down} -- Left
                 delay 0.12
             end repeat
+
+            -- Restore original clipboard
+            set the clipboard to originalClipboard
         end tell
     end tell
 end run
