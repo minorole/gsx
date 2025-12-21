@@ -10,6 +10,9 @@ on run argv
     set projectDir to item 2 of argv
     set layoutSpec to item 3 of argv
 
+    -- Save current clipboard to restore later
+    set originalClipboard to the clipboard as record
+
     -- Parse commands (items 4 onward)
     set commands to {}
     if (count of argv) > 3 then
@@ -37,117 +40,133 @@ on run argv
 
     delay 0.3
 
-    tell application "System Events"
-        if not (exists process "Ghostty") then
-            error "Ghostty process not found. Is Ghostty running?"
-        end if
-
-        tell process "Ghostty"
-            -- New window (unless reusing current)
-            if reuseWindow is "false" then
-                keystroke "n" using {command down}
-                delay 0.6
+    try
+        tell application "System Events"
+            if not (exists process "Ghostty") then
+                error "Ghostty process not found. Is Ghostty running?"
             end if
 
-            -- cd to project directory (this is pane 1, spatial position 0)
-            -- Use quoted form to safely handle paths with apostrophes/special chars
-            keystroke "cd " & quoted form of projectDir
-            key code 36 -- Enter
-            delay 0.3
-
-            -- PHASE 1: Create row spine (n-1 vertical splits)
-            -- This creates one anchor pane per row
-            if numRows > 1 then
-                repeat numRows - 1 times
-                    keystroke "d" using {command down, shift down}
-                    delay 0.4
-                end repeat
-
-                -- Navigate to top row using directional navigation
-                repeat numRows - 1 times
-                    key code 126 using {command down, option down} -- Up
-                    delay 0.3
-                end repeat
-            end if
-            delay 0.3
-
-            -- PHASE 2: Expand rows and type commands inline
-            -- Visit order matches spatial order: row by row, left to right
-            -- We type each command immediately when we're in that pane
-            set spatialIdx to 1 -- 1-based index into commands array
-
-            repeat with rowIdx from 1 to numRows
-                set panesInRow to item rowIdx of rowCounts
-
-                -- Type command for this row's anchor (we're already here)
-                if spatialIdx <= (count of commands) then
-                    set cmd to item spatialIdx of commands
-                    if cmd is not "" then
-                        keystroke cmd
-                        key code 36 -- Enter
-                        delay 0.25
-                    end if
+            tell process "Ghostty"
+                -- New window (unless reusing current)
+                if reuseWindow is "false" then
+                    keystroke "n" using {command down}
+                    delay 1.0 -- Increased for more reliable window creation
                 end if
-                set spatialIdx to spatialIdx + 1
 
-                -- Create horizontal splits and type commands for each new pane
-                if panesInRow > 1 then
-                    repeat panesInRow - 1 times
-                        keystroke "d" using {command down} -- Split right
+                -- Ensure focused before starting setup
+                set frontmost to true
+                delay 0.5
+
+                -- cd to project directory (this is pane 1, spatial position 0)
+                set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+                keystroke "v" using {command down}
+                key code 36 -- Enter
+                delay 0.5
+
+                -- PHASE 1: Create row spine (n-1 vertical splits)
+                -- This creates one anchor pane per row
+                if numRows > 1 then
+                    repeat numRows - 1 times
+                        keystroke "d" using {command down, shift down}
                         delay 0.4
+                    end repeat
 
-                        -- Now in the new split pane, type its command
-                        if spatialIdx <= (count of commands) then
-                            set cmd to item spatialIdx of commands
-                            if cmd is not "" then
-                                keystroke cmd
-                                key code 36 -- Enter
-                                delay 0.25
-                            end if
-                        end if
-                        set spatialIdx to spatialIdx + 1
+                    -- Navigate to top row using directional navigation
+                    repeat numRows - 1 times
+                        key code 126 using {command down, option down} -- Up
+                        delay 0.3
                     end repeat
                 end if
+                delay 0.3
 
-                -- Navigate to next row anchor (if not last row)
-                if rowIdx < numRows then
-                    delay 0.2
-                    -- Go LEFT back to col 0 of current row
+                -- PHASE 2: Expand rows and type commands inline
+                -- Visit order matches spatial order: row by row, left to right
+                -- We type each command immediately when we're in that pane
+                set spatialIdx to 1 -- 1-based index into commands array
+
+                repeat with rowIdx from 1 to numRows
+                    set panesInRow to item rowIdx of rowCounts
+
+                    -- Type command for this row's anchor (we're already here)
+                    if spatialIdx <= (count of commands) then
+                        set cmd to item spatialIdx of commands
+                        if cmd is not "" then
+                            set the clipboard to cmd
+                            keystroke "v" using {command down}
+                            key code 36 -- Enter
+                            delay 0.4 -- Reliable completion delay
+                        end if
+                    end if
+                    set spatialIdx to spatialIdx + 1
+
+                    -- Create horizontal splits and type commands for each new pane
                     if panesInRow > 1 then
                         repeat panesInRow - 1 times
-                            key code 123 using {command down, option down} -- Left
-                            delay 0.15
+                            keystroke "d" using {command down} -- Split right
+                            delay 0.6 -- Increased for split stability
+
+                            -- Now in the new split pane, type its command
+                            if spatialIdx <= (count of commands) then
+                                set cmd to item spatialIdx of commands
+                                if cmd is not "" then
+                                    set the clipboard to cmd
+                                    keystroke "v" using {command down}
+                                    key code 36 -- Enter
+                                    delay 0.4
+                                end if
+                            end if
+                            set spatialIdx to spatialIdx + 1
                         end repeat
                     end if
-                    -- Go DOWN to next row
-                    key code 125 using {command down, option down} -- Down
-                    delay 0.2
+
+                    -- Navigate to next row anchor (if not last row)
+                    if rowIdx < numRows then
+                        delay 0.2
+                        -- Go LEFT back to col 0 of current row
+                        if panesInRow > 1 then
+                            repeat panesInRow - 1 times
+                                key code 123 using {command down, option down} -- Left
+                                delay 0.15
+                            end repeat
+                        end if
+                        -- Go DOWN to next row
+                        key code 125 using {command down, option down} -- Down
+                        delay 0.2
+                    end if
+                end repeat
+
+                -- PHASE 3: Equalize splits
+                if totalPanes > 1 then
+                    key code 24 using {command down, control down}
+                    delay 0.4
                 end if
-            end repeat
 
-            -- PHASE 3: Equalize splits
-            if totalPanes > 1 then
-                key code 24 using {command down, control down}
-                delay 0.4
-            end if
-
-            -- PHASE 4: Navigate to first pane (optional, for user convenience)
-            -- Go to top-left pane so user starts at a predictable position
-            delay 0.2
-            repeat numRows - 1 times
-                key code 126 using {command down, option down} -- Up
-                delay 0.12
-            end repeat
-            set maxCols to 0
-            repeat with r in rowCounts
-                if r > maxCols then set maxCols to r
-            end repeat
-            repeat maxCols - 1 times
-                key code 123 using {command down, option down} -- Left
-                delay 0.12
-            end repeat
+                -- PHASE 4: Navigate to first pane (optional, for user convenience)
+                -- Go to top-left pane so user starts at a predictable position
+                delay 0.2
+                repeat numRows - 1 times
+                    key code 126 using {command down, option down} -- Up
+                    delay 0.12
+                end repeat
+                set maxCols to 0
+                repeat with r in rowCounts
+                    if r > maxCols then set maxCols to r
+                end repeat
+                repeat maxCols - 1 times
+                    key code 123 using {command down, option down} -- Left
+                    delay 0.12
+                end repeat
+            end tell
         end tell
-    end tell
+        
+        -- Success: Restore original clipboard
+        set the clipboard to originalClipboard
+        
+    on error errMsg
+        -- Error: Restore clipboard before re-throwing
+        set the clipboard to originalClipboard
+        error errMsg
+    end try
 end run
 
 -- Parse "2-2" into {2, 2}

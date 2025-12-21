@@ -7,6 +7,9 @@ on run argv
     set reuseWindow to item 1 of argv
     set projectDir to item 2 of argv
 
+    -- Save current clipboard to restore later
+    set originalClipboard to the clipboard as record
+
     -- Parse commands (items 3 onward)
     set commands to {}
     if (count of argv) > 2 then
@@ -26,45 +29,61 @@ on run argv
 
     delay 0.3
 
-    tell application "System Events"
-        if not (exists process "Ghostty") then
-            error "Ghostty process not found. Is Ghostty running?"
-        end if
-
-        tell process "Ghostty"
-            -- New window (unless reusing current)
-            if reuseWindow is "false" then
-                keystroke "n" using {command down}
-                delay 0.6
+    try
+        tell application "System Events"
+            if not (exists process "Ghostty") then
+                error "Ghostty process not found. Is Ghostty running?"
             end if
 
-            -- Process each tab
-            repeat with tabIdx from 1 to numTabs
-                -- For tabs after the first, create a new tab
-                if tabIdx > 1 then
-                    keystroke "t" using {command down}
-                    delay 0.4
+            tell process "Ghostty"
+                -- New window (unless reusing current)
+                if reuseWindow is "false" then
+                    keystroke "n" using {command down}
+                    delay 1.0 -- Increased for more reliable window creation
                 end if
 
-                -- cd to project directory
-                keystroke "cd " & quoted form of projectDir
-                key code 36 -- Enter
-                delay 0.3
+                -- Ensure focused before starting setup
+                set frontmost to true
+                delay 0.5
 
-                -- Run command if provided
-                if tabIdx <= (count of commands) then
-                    set cmd to item tabIdx of commands
-                    if cmd is not "" then
-                        keystroke cmd
-                        key code 36 -- Enter
-                        delay 0.25
+                -- Process each tab
+                repeat with tabIdx from 1 to numTabs
+                    -- For tabs after the first, create a new tab
+                    if tabIdx > 1 then
+                        keystroke "t" using {command down}
+                        delay 0.4
                     end if
-                end if
-            end repeat
 
-            -- Go back to first tab (Cmd+1)
-            delay 0.2
-            keystroke "1" using {command down}
+                    -- cd to project directory
+                    set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+                    keystroke "v" using {command down}
+                    key code 36 -- Enter
+                    delay 0.5
+
+                    -- Run command if provided
+                    if tabIdx <= (count of commands) then
+                        set cmd to item tabIdx of commands
+                        if cmd is not "" then
+                            set the clipboard to cmd
+                            keystroke "v" using {command down}
+                            key code 36 -- Enter
+                            delay 0.4
+                        end if
+                    end if
+                end repeat
+
+                -- Go back to first tab (Cmd+1)
+                delay 0.2
+                keystroke "1" using {command down}
+            end tell
         end tell
-    end tell
+        
+        -- Success: Restore original clipboard
+        set the clipboard to originalClipboard
+        
+    on error errMsg
+        -- Error: Restore clipboard before re-throwing
+        set the clipboard to originalClipboard
+        error errMsg
+    end try
 end run
