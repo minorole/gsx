@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.6] - 2025-12-21
+
+### Fixed
+
+- **Improved reliability**: Clipboard-based command execution instead of keystroke typing
+  - More reliable for commands with special characters
+  - Preserves and restores clipboard contents after setup
+- **Better timing**: Increased delays for window creation and split operations
+- **Focus stability**: Added explicit focus verification before pane setup
+
+### Changed
+
+- Panes now clear after initial `cd` for cleaner appearance
+
 ## [0.2.5] - 2025-12-08
 
 ### Added
@@ -134,6 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.6]: https://github.com/minorole/gsx/releases/tag/v0.2.6
 [0.2.5]: https://github.com/minorole/gsx/releases/tag/v0.2.5
 [0.2.4]: https://github.com/minorole/gsx/releases/tag/v0.2.4
 [0.2.3]: https://github.com/minorole/gsx/releases/tag/v0.2.3
