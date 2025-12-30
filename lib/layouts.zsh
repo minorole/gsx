@@ -219,8 +219,8 @@ run_layout() {
     sleep 0.5
   done
 
-  wait $pid
-  exit_status=$?
+  exit_status=0
+  wait $pid || exit_status=$?
   local script_result=$(cat "$tmpout")
   rm -f "$tmpout"
 
