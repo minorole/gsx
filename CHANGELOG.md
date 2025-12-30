@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.7] - 2025-12-30
+
+### Fixed
+
+- **Critical: Silent failure on launch** - gpane would fail silently when clipboard contained certain content types (plain text, images, files)
+  - Root cause: AppleScript `clipboard as record` coercion fails for non-rich clipboard content
+  - Fix: Made clipboard save/restore fault-tolerant with try/catch
+- **Error messages not displaying** - When AppleScript failed, the shell script exited before showing error messages
+  - Root cause: `set -e` combined with `wait` caused premature exit
+  - Fix: Capture exit status without triggering errexit
+
 ## [0.2.6] - 2025-12-21
 
 ### Fixed
@@ -148,6 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.2.7]: https://github.com/minorole/gsx/releases/tag/v0.2.7
 [0.2.6]: https://github.com/minorole/gsx/releases/tag/v0.2.6
 [0.2.5]: https://github.com/minorole/gsx/releases/tag/v0.2.5
 [0.2.4]: https://github.com/minorole/gsx/releases/tag/v0.2.4

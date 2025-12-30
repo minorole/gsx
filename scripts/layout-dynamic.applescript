@@ -10,8 +10,11 @@ on run argv
     set projectDir to item 2 of argv
     set layoutSpec to item 3 of argv
 
-    -- Save current clipboard to restore later
-    set originalClipboard to the clipboard as record
+    -- Try to save current clipboard (may fail for some content types)
+    set originalClipboard to missing value
+    try
+        set originalClipboard to the clipboard
+    end try
 
     -- Parse commands (items 4 onward)
     set commands to {}
@@ -159,12 +162,20 @@ on run argv
             end tell
         end tell
         
-        -- Success: Restore original clipboard
-        set the clipboard to originalClipboard
-        
+        -- Success: Restore original clipboard if we saved it
+        if originalClipboard is not missing value then
+            try
+                set the clipboard to originalClipboard
+            end try
+        end if
+
     on error errMsg
         -- Error: Restore clipboard before re-throwing
-        set the clipboard to originalClipboard
+        if originalClipboard is not missing value then
+            try
+                set the clipboard to originalClipboard
+            end try
+        end if
         error errMsg
     end try
 end run
