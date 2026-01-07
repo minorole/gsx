@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2025-01-07
+
+### Added
+
+- **Tabs + Sections**: Combine multiple tabs with split sections in each tab
+  - Add `tabs: N` to config to create N tabs (2-10)
+  - Each tab uses your specified layout (duo, trio, quad, etc.)
+  - Example: `tabs: 3` + `layout: duo` = 3 tabs × 2 sections = 6 workspaces
+  - Commands fill in order: tab1-section1, tab1-section2, tab2-section1, ...
+
+### Changed
+
+- Setup wizard now asks "Do you want multiple tabs?" before layout selection
+- Terminology: "panes" renamed to "sections" in wizard for clarity
+- Help text updated to explain tabs + sections
+
+### Removed
+
+- **BREAKING**: `layout: tabs` is removed
+  - Migration: Change `layout: tabs` to `layout: 1` and add `tabs: N`
+  - Running with old config shows clear migration instructions
+  - The new system is more flexible: any layout can have tabs
+
 ## [0.2.7] - 2025-12-30
 
 ### Fixed

@@ -18,6 +18,7 @@ CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 # Global config variables (set by parse_config)
 PROJECTS_ROOT=""
 DEFAULT_LAYOUT="3-col"
+TABS_COUNT=1  # Number of tabs (1 = single window, 2-10 = multiple tabs)
 
 # Array of commands in spatial order (left-to-right, top-to-bottom)
 typeset -a PANE_COMMANDS
@@ -31,6 +32,7 @@ parse_config() {
   # Reset to defaults
   PROJECTS_ROOT=""
   DEFAULT_LAYOUT="3-col"
+  TABS_COUNT=1
   PANE_COMMANDS=()
 
   local line in_commands=false
@@ -57,6 +59,8 @@ parse_config() {
       PROJECTS_ROOT="${PROJECTS_ROOT/#\~/${HOME}}"
     elif [[ "${line}" =~ ^default_layout:[[:space:]]*(.+)$ ]]; then
       DEFAULT_LAYOUT="${match[1]}"
+    elif [[ "${line}" =~ ^tabs:[[:space:]]*([0-9]+)$ ]]; then
+      TABS_COUNT="${match[1]}"
     fi
 
     # Parse default commands (array format: "- value")
@@ -129,6 +133,8 @@ parse_project_config() {
     if [[ "${in_project}" == true ]]; then
       if [[ "${line}" =~ ^[[:space:]]+layout:[[:space:]]*(.+)$ ]]; then
         DEFAULT_LAYOUT="${match[1]}"
+      elif [[ "${line}" =~ ^[[:space:]]+tabs:[[:space:]]*([0-9]+)$ ]]; then
+        TABS_COUNT="${match[1]}"
       # Handle commands array format
       elif [[ "${in_commands}" == true ]]; then
         if [[ "${line}" =~ ^[[:space:]]+-[[:space:]]+\"(.*)\"$ ]]; then
