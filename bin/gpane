@@ -44,19 +44,31 @@ open_session() {
     [[ "${reuse_window}" == "true" ]] && window_mode="current"
     echo "  ${project_name}"
     echo "    dir:    ${project_dir}"
-    echo "    layout: ${resolved_layout}"
+
+    local panes_per_tab
+    panes_per_tab=$(compute_total_panes "${resolved_layout}")
+
+    if (( TABS_COUNT > 1 )); then
+      echo "    layout: ${resolved_layout} × ${TABS_COUNT} tabs (${panes_per_tab} panes/tab)"
+    else
+      echo "    layout: ${resolved_layout}"
+    fi
     echo "    window: ${window_mode}"
-    if is_tabs_layout "${resolved_layout}"; then
-      local num_tabs=${#PANE_COMMANDS[@]}
-      (( num_tabs > 10 )) && num_tabs=10
-      for ((i = 1; i <= num_tabs; i++)); do
-        local cmd="${PANE_COMMANDS[$i]:-}"
-        echo "    tab ${i}/${num_tabs}: ${cmd:-<empty>}"
+
+    if (( TABS_COUNT > 1 )); then
+      # Tabs + panes mode
+      local cmd_idx=1
+      for ((t = 1; t <= TABS_COUNT; t++)); do
+        echo "    tab ${t}/${TABS_COUNT}:"
+        for ((p = 1; p <= panes_per_tab; p++)); do
+          local cmd="${PANE_COMMANDS[$cmd_idx]:-}"
+          echo "      pane ${p}: ${cmd:-<empty>}"
+          cmd_idx=$((cmd_idx + 1))
+        done
       done
     else
-      local total_panes
-      total_panes=$(compute_total_panes "${resolved_layout}")
-      for ((i = 1; i <= total_panes; i++)); do
+      # Single window with panes
+      for ((i = 1; i <= panes_per_tab; i++)); do
         local cmd="${PANE_COMMANDS[$i]:-}"
         echo "    pane $i: ${cmd:-<empty>}"
       done
@@ -64,9 +76,14 @@ open_session() {
     return 0
   fi
 
+  # Check for deprecated layout: tabs syntax
+  if ! check_deprecated_tabs_layout "${resolved_layout}"; then
+    return 1
+  fi
+
   # Route to appropriate layout handler
-  if is_tabs_layout "${resolved_layout}"; then
-    layout_tabs "${project_name}" "${project_dir}" "${reuse_window}" "${PANE_COMMANDS[@]}"
+  if (( TABS_COUNT > 1 )); then
+    layout_hybrid "${project_name}" "${project_dir}" "${resolved_layout}" "${TABS_COUNT}" "${reuse_window}" "${PANE_COMMANDS[@]}"
   else
     layout_dynamic "${project_name}" "${project_dir}" "${resolved_layout}" "${reuse_window}" "${PANE_COMMANDS[@]}"
   fi

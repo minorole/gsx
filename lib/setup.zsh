@@ -103,7 +103,12 @@ setup_wizard() {
   local projects_root="${SELECTED_PROJECTS_ROOT}"
   echo ""
 
-  # Step 2: Layout selection
+  # Step 2: Tabs selection
+  prompt_tabs_choice
+  local tabs_count="${SELECTED_TABS_COUNT}"
+  echo ""
+
+  # Step 3: Layout selection (sections per tab)
   show_layout_menu "full"
   while true; do
     prompt_layout_choice "1"
@@ -111,10 +116,9 @@ setup_wizard() {
   done
 
   local default_layout="${SELECTED_LAYOUT}"
-  local num_tabs="${SELECTED_NUM_TABS}"
 
-  # Step 3: Get pane/tab info and prompt for commands
-  get_layout_info_for_prompts "${default_layout}" "${num_tabs}"
+  # Step 4: Get layout info and prompt for commands
+  get_layout_info_for_prompts "${default_layout}" "${tabs_count}"
 
   echo ""
   echo "Commands for each ${PROMPT_UNIT} (Enter = empty shell)"
@@ -128,7 +132,11 @@ setup_wizard() {
   echo ""
   echo "Summary:"
   echo "  Folder: ${projects_root}"
-  echo "  Layout: ${default_layout}"
+  if (( tabs_count > 1 )); then
+    echo "  Layout: ${default_layout} × ${tabs_count} tabs"
+  else
+    echo "  Layout: ${default_layout}"
+  fi
   echo "  Commands:"
   local i=1
   while (( i <= PROMPT_PANE_COUNT )); do
@@ -159,10 +167,17 @@ setup_wizard() {
     i=$((i + 1))
   done
 
+  # Build tabs line (only include if > 1)
+  local tabs_yaml=""
+  if (( tabs_count > 1 )); then
+    tabs_yaml="tabs: ${tabs_count}"
+  fi
+
   cat > "${CONFIG_FILE}" <<EOF
 # gpane config - edit or run 'gpane setup' again
 projects_root: ${projects_root}
 default_layout: ${default_layout}
+${tabs_yaml}
 
 default_commands:
 $(echo -e "${commands_yaml}")
@@ -170,6 +185,7 @@ $(echo -e "${commands_yaml}")
 projects:
 #   myproject:
 #     layout: quad
+#     tabs: 2
 #     commands:
 #       - "nvim ."
 #       - "npm run dev"
@@ -214,7 +230,12 @@ setup_project() {
   echo "(Enter = keep default)"
   echo ""
 
-  # Layout selection with compact menu (now includes tabs!)
+  # Tabs selection
+  prompt_tabs_choice
+  local project_tabs="${SELECTED_TABS_COUNT}"
+  echo ""
+
+  # Layout selection with compact menu
   show_layout_menu "compact"
   while true; do
     prompt_layout_choice ""  # empty default = keep current
@@ -222,7 +243,6 @@ setup_project() {
   done
 
   local project_layout="${SELECTED_LAYOUT}"
-  local num_tabs="${SELECTED_NUM_TABS}"
 
   # Determine which layout to use for command prompts
   local effective_layout
@@ -234,8 +254,14 @@ setup_project() {
     echo "Using default layout: ${effective_layout}"
   fi
 
-  # Get pane/tab info for the effective layout
-  get_layout_info_for_prompts "${effective_layout}" "${num_tabs}"
+  # Determine effective tabs count
+  local effective_tabs="${project_tabs}"
+  if (( effective_tabs <= 1 )); then
+    effective_tabs="${TABS_COUNT}"  # Use global default
+  fi
+
+  # Get layout info for the effective layout and tabs
+  get_layout_info_for_prompts "${effective_layout}" "${effective_tabs}"
 
   # Commands
   echo ""
@@ -254,6 +280,8 @@ setup_project() {
     echo ""
     echo "  ${project_name}:"
     [[ -n "${project_layout}" ]] && echo "    layout: ${project_layout}"
+    # Write tabs if different from global default (allows overriding multi-tab to single)
+    (( project_tabs != TABS_COUNT )) && echo "    tabs: ${project_tabs}"
     if ${has_commands}; then
       echo "    commands:"
       for cmd in "${commands[@]}"; do

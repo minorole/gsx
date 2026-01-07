@@ -17,26 +17,20 @@ show_layout_menu() {
   local reset=$'\e[0m'
 
   if [[ "${style}" == "full" ]]; then
-    echo "Layouts:"
-    echo "  ${dim}── Panes (split window) ──${reset}"
-    echo "  1) duo        Two panes side-by-side    [1|2]"
-    echo "  2) trio       Three panes side-by-side  [1|2|3]"
-    echo "  3) stacked    Two panes vertically      [1] / [2]"
-    echo "  4) quad       2x2 grid                  [1|2] / [3|4]"
-    echo "  5) dashboard  1 main + 3 below          [  1  ] / [2|3|4]"
-    echo "  6) wide       3 top + 1 bottom          [1|2|3] / [  4  ]"
-    echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
+    echo "How many sections per tab?"
     echo ""
-    echo "  ${cyan}── Tabs (separate tabs) ──${reset}"
-    echo "  ${cyan}8) tabs       One tab per command (up to 10)${reset}"
+    echo "  1) duo        Two sections side-by-side    [1|2]"
+    echo "  2) trio       Three sections              [1|2|3]"
+    echo "  3) stacked    Two sections vertically      [1] / [2]"
+    echo "  4) quad       2x2 grid                     [1|2] / [3|4]"
+    echo "  5) dashboard  1 main + 3 below             [  1  ] / [2|3|4]"
+    echo "  6) wide       3 top + 1 bottom             [1|2|3] / [  4  ]"
+    echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
   else
-    echo "Layout:"
-    echo "  ${dim}── Panes ──${reset}"
+    echo "Sections per tab:"
     echo "  1) duo        2) trio       3) stacked"
     echo "  4) quad       5) dashboard  6) wide"
     echo "  7) custom"
-    echo "  ${cyan}── Tabs ──${reset}"
-    echo "  ${cyan}8) tabs${reset}"
   fi
   echo ""
 }
@@ -47,8 +41,7 @@ show_layout_menu() {
 #                   use "" to allow empty selection (keep current)
 #
 # Sets globals:
-#   SELECTED_LAYOUT - the layout name/spec (e.g., "duo", "tabs", "2-3"), empty if keeping default
-#   SELECTED_NUM_TABS - number of tabs if tabs layout (0 otherwise)
+#   SELECTED_LAYOUT - the layout name/spec (e.g., "duo", "2-3"), empty if keeping default
 #   SELECTED_LAYOUT_VALID - true if selection was valid, false if invalid input
 prompt_layout_choice() {
   local default_choice="${1:-1}"
@@ -58,7 +51,6 @@ prompt_layout_choice() {
   layout_choice="${layout_choice:-${default_choice}}"
 
   SELECTED_LAYOUT=""
-  SELECTED_NUM_TABS=0
   SELECTED_LAYOUT_VALID=true
 
   case "${layout_choice}" in
@@ -70,8 +62,8 @@ prompt_layout_choice() {
     6) SELECTED_LAYOUT="wide" ;;
     7)
       echo ""
-      echo "Custom layout: N-M-O (panes per row, max 10 panes, max 4 rows)"
-      echo "Examples: 2-2 (4 panes), 1-3 (4 panes), 2-3-1 (6 panes)"
+      echo "Custom layout: N-M-O (sections per row, max 10 sections, max 4 rows)"
+      echo "Examples: 2-2 (4 sections), 1-3 (4 sections), 2-3-1 (6 sections)"
       local custom_layout=""
       while true; do
         prompt_input "Layout: " custom_layout
@@ -80,22 +72,6 @@ prompt_layout_choice() {
           break
         fi
         echo "Invalid layout. Try again (e.g., 2-2, 1-3, 2-3-1)"
-      done
-      ;;
-    8)
-      SELECTED_LAYOUT="tabs"
-      echo ""
-      local tabs_input=""
-      while true; do
-        prompt_input "How many tabs? [2-10, default 4]: " tabs_input
-        if [[ -z "${tabs_input}" ]]; then
-          SELECTED_NUM_TABS=4
-          break
-        elif [[ "${tabs_input}" =~ ^[0-9]+$ ]] && (( tabs_input >= 2 && tabs_input <= 10 )); then
-          SELECTED_NUM_TABS="${tabs_input}"
-          break
-        fi
-        echo "Invalid number. Enter 2-10 or press Enter for default."
       done
       ;;
     "")
@@ -109,6 +85,35 @@ prompt_layout_choice() {
       SELECTED_LAYOUT_VALID=false
       ;;
   esac
+}
+
+# =============================================================================
+# Tabs Prompt
+# =============================================================================
+
+# Prompt for tabs choice
+# Usage: prompt_tabs_choice
+#
+# Sets global:
+#   SELECTED_TABS_COUNT - number of tabs (1 = no tabs, 2-10 = multiple tabs)
+prompt_tabs_choice() {
+  SELECTED_TABS_COUNT=1
+
+  local want_tabs=""
+  prompt_input "Do you want multiple tabs? [y/N]: " want_tabs
+
+  if [[ "${want_tabs}" =~ ^[Yy]$ ]]; then
+    local tabs_input=""
+    while true; do
+      prompt_input "How many tabs? [2-10, default 3]: " tabs_input
+      tabs_input="${tabs_input:-3}"
+      if [[ "${tabs_input}" =~ ^[0-9]+$ ]] && (( tabs_input >= 2 && tabs_input <= 10 )); then
+        SELECTED_TABS_COUNT="${tabs_input}"
+        break
+      fi
+      echo "Enter a number between 2 and 10."
+    done
+  fi
 }
 
 # =============================================================================
@@ -141,36 +146,41 @@ prompt_pane_commands() {
 # Layout Info Helpers
 # =============================================================================
 
-# Get pane count and labels for a layout, with optional tab count override
+# Get pane count and labels for a layout, with optional tab count
 # Usage: get_layout_info_for_prompts <layout> [num_tabs]
 #
 # Sets globals:
-#   PROMPT_PANE_COUNT - number of panes/tabs
+#   PROMPT_PANE_COUNT - total number of command slots
 #   PROMPT_PANE_LABELS - array of labels
-#   PROMPT_UNIT - "pane" or "tab"
+#   PROMPT_UNIT - "section" (beginner-friendly)
 get_layout_info_for_prompts() {
   local layout=$1
-  local num_tabs="${2:-0}"
+  local num_tabs="${2:-1}"
 
   PROMPT_PANE_COUNT=0
   PROMPT_PANE_LABELS=()
-  PROMPT_UNIT="pane"
+  PROMPT_UNIT="section"
 
-  if [[ "${layout}" == "tabs" ]]; then
-    PROMPT_UNIT="tab"
-    if (( num_tabs > 0 )); then
-      PROMPT_PANE_COUNT="${num_tabs}"
-    else
-      PROMPT_PANE_COUNT=4  # default
-    fi
-    local i=1
-    while (( i <= PROMPT_PANE_COUNT )); do
-      PROMPT_PANE_LABELS+=("Tab ${i}")
-      i=$((i + 1))
+  # Get base layout info
+  get_layout_info "${layout}"
+  local panes_per_tab=$LAYOUT_PANE_COUNT
+  local -a base_labels=("${LAYOUT_PANE_LABELS[@]}")
+
+  if (( num_tabs > 1 )); then
+    # Hybrid mode: tabs × panes
+    PROMPT_PANE_COUNT=$((num_tabs * panes_per_tab))
+    local t=1
+    while (( t <= num_tabs )); do
+      local p=1
+      while (( p <= panes_per_tab )); do
+        PROMPT_PANE_LABELS+=("Tab ${t} - ${base_labels[$p]}")
+        p=$((p + 1))
+      done
+      t=$((t + 1))
     done
   else
-    get_layout_info "${layout}"
-    PROMPT_PANE_COUNT=$LAYOUT_PANE_COUNT
-    PROMPT_PANE_LABELS=("${LAYOUT_PANE_LABELS[@]}")
+    # Single window mode
+    PROMPT_PANE_COUNT=$panes_per_tab
+    PROMPT_PANE_LABELS=("${base_labels[@]}")
   fi
 }
