@@ -75,12 +75,6 @@ on run argv
                     -- cmdIndex = (tabIdx - 1) * panesPerTab + spatialIdx
                     set tabCmdBase to (tabIdx - 1) * panesPerTab
 
-                    -- cd to project directory (this is pane 1 of current tab)
-                    set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
-                    keystroke "v" using {command down}
-                    key code 36 -- Enter
-                    delay 0.5
-
                     -- === PHASE 1: Create row spine (n-1 vertical splits) ===
                     -- This creates one anchor pane per row
                     if numRows > 1 then
