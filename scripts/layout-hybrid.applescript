@@ -105,6 +105,16 @@ on run argv
                     repeat with rowIdx from 1 to numRows
                         set panesInRow to item rowIdx of rowCounts
 
+                        -- Ensure non-first panes start in project directory
+                        -- (pane 1 already got cd at tab start; row 2+ anchors
+                        -- may not inherit if pane 1 is running a foreground process)
+                        if spatialIdx > 1 then
+                            set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+                            keystroke "v" using {command down}
+                            key code 36 -- Enter
+                            delay 0.3
+                        end if
+
                         -- Type command for this row's anchor (we're already here)
                         set cmdIndex to tabCmdBase + spatialIdx
                         if cmdIndex <= (count of commands) then
@@ -123,6 +133,12 @@ on run argv
                             repeat panesInRow - 1 times
                                 keystroke "d" using {command down} -- Split right
                                 delay 0.6 -- Increased for split stability
+
+                                -- Ensure split pane starts in project directory
+                                set the clipboard to "cd " & (quoted form of projectDir) & " && clear"
+                                keystroke "v" using {command down}
+                                key code 36 -- Enter
+                                delay 0.3
 
                                 -- Now in the new split pane, type its command
                                 set cmdIndex to tabCmdBase + spatialIdx
