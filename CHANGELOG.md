@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-02-16
+
+### Fixed
+
+- **Pane directory inheritance**: Non-first panes now explicitly `cd` to project dir before running commands, fixing failures when pane 1 runs a foreground process (claude, npm run dev)
+- Removed fragile clipboard-based cd injection from AppleScript layouts
+
 ## [0.3.0] - 2025-01-07
 
 ### Added
@@ -182,6 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.3.1]: https://github.com/minorole/gsx/releases/tag/v0.3.1
+[0.3.0]: https://github.com/minorole/gsx/releases/tag/v0.3.0
 [0.2.7]: https://github.com/minorole/gsx/releases/tag/v0.2.7
 [0.2.6]: https://github.com/minorole/gsx/releases/tag/v0.2.6
 [0.2.5]: https://github.com/minorole/gsx/releases/tag/v0.2.5

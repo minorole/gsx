@@ -27,24 +27,22 @@ jobs:
           repository: minorole/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
-      - name: Update formula
+      - name: Update formulas
         run: |
           VERSION="${{ steps.release.outputs.version }}"
           SHA256="${{ steps.release.outputs.sha256 }}"
 
-          # Update version and sha256 in formula
-          sed -i "s/version \".*\"/version \"${VERSION}\"/" Formula/gsx.rb
-          sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Formula/gsx.rb
-
-          # Update URL if it contains version
-          sed -i "s|/v[0-9]*\.[0-9]*\.[0-9]*\.tar\.gz|/v${VERSION}.tar.gz|" Formula/gsx.rb
+          for formula in Formula/gpane.rb Formula/gsx.rb; do
+            sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/" "$formula"
+            sed -i "s|/v[0-9]*\.[0-9]*\.[0-9]*\.tar\.gz|/v${VERSION}.tar.gz|" "$formula"
+          done
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/gsx.rb
-          git diff --cached --quiet || git commit -m "gsx ${VERSION}"
+          git add Formula/gpane.rb Formula/gsx.rb
+          git diff --cached --quiet || git commit -m "gpane ${VERSION}"
           git push
         env:
           VERSION: ${{ steps.release.outputs.version }}
