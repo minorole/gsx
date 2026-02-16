@@ -53,6 +53,24 @@ compute_total_panes() {
     echo $total
 }
 
+# Prepend cd to project directory for every pane command
+# Empty commands become "cd <dir>"
+# Non-empty commands become "cd <dir> && <cmd>"
+prepend_cd_to_commands() {
+    local project_dir=$1
+    shift
+    local -a cmds=("$@")
+    local -a result=()
+    for cmd in "${cmds[@]}"; do
+        if [[ -z "$cmd" ]]; then
+            result+=("cd ${(q)project_dir}")
+        else
+            result+=("cd ${(q)project_dir} && ${cmd}")
+        fi
+    done
+    PREPARED_COMMANDS=("${result[@]}")
+}
+
 # Validate layout spec
 # Returns 0 if valid, 1 if invalid (with error message to stderr)
 validate_layout() {
@@ -149,7 +167,16 @@ layout_hybrid() {
         return 1
     fi
 
-    run_layout "layout-hybrid" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${tabs_count}" "${cmds[@]}"
+    # Pad commands to fill all pane slots across all tabs
+    local panes_per_tab
+    panes_per_tab=$(compute_total_panes "$layout_spec")
+    local total_slots=$((panes_per_tab * tabs_count))
+    while (( ${#cmds[@]} < total_slots )); do
+        cmds+=("")
+    done
+
+    prepend_cd_to_commands "${project_dir}" "${cmds[@]}"
+    run_layout "layout-hybrid" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${tabs_count}" "${PREPARED_COMMANDS[@]}"
 }
 
 # Check for deprecated layout: tabs syntax
@@ -196,8 +223,15 @@ layout_dynamic() {
         return 1
     fi
 
-    # Pass commands directly in spatial order - AppleScript handles them inline
-    run_layout "layout-dynamic" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${spatial_cmds[@]}"
+    # Pad commands to fill all pane slots
+    local total_panes
+    total_panes=$(compute_total_panes "$layout_spec")
+    while (( ${#spatial_cmds[@]} < total_panes )); do
+        spatial_cmds+=("")
+    done
+
+    prepend_cd_to_commands "${project_dir}" "${spatial_cmds[@]}"
+    run_layout "layout-dynamic" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${PREPARED_COMMANDS[@]}"
 }
 
 # Run a layout script with progress dots
