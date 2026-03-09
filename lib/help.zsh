@@ -21,6 +21,7 @@ Options:
   --here, --current-window
                           Use current Ghostty window instead of creating new one
                           (For multiple projects, only the first uses current window)
+                          Tip: set 'current_window: true' in config to make this default
 
 Layouts:
   Row notation: "2" (2 side-by-side), "2-2" (4-pane grid), "1-3" (1 top + 3 bottom)

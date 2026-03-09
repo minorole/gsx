@@ -23,6 +23,7 @@ source "${GPANE_ROOT}/lib/setup.zsh"
 # Global flags
 DRY_RUN=false
 REUSE_WINDOW=false
+REUSE_WINDOW_EXPLICIT=false
 
 # Open session for a project
 # Sets PROJECT_LAYOUT as side effect (for caller to use in header)
@@ -96,7 +97,10 @@ main() {
   # Check for flags anywhere in args
   for arg in "$@"; do
     [[ "${arg}" == "--dry-run" ]] && DRY_RUN=true
-    [[ "${arg}" == "--here" || "${arg}" == "--current-window" ]] && REUSE_WINDOW=true
+    if [[ "${arg}" == "--here" || "${arg}" == "--current-window" ]]; then
+      REUSE_WINDOW=true
+      REUSE_WINDOW_EXPLICIT=true
+    fi
   done
 
   # Skip preflight for help/version
@@ -138,6 +142,9 @@ main() {
         check_for_updates
         [[ "${DRY_RUN}" == false ]] && check_ghostty
         parse_config
+        if [[ "${REUSE_WINDOW_EXPLICIT}" == false && "${DEFAULT_REUSE_WINDOW}" == true ]]; then
+          REUSE_WINDOW=true
+        fi
         interactive_select || exit 1
 
         local count=${#SELECTED_PROJECTS[@]}
@@ -168,6 +175,9 @@ main() {
       check_for_updates
       [[ "${DRY_RUN}" == false ]] && check_ghostty
       parse_config
+      if [[ "${REUSE_WINDOW_EXPLICIT}" == false && "${DEFAULT_REUSE_WINDOW}" == true ]]; then
+        REUSE_WINDOW=true
+      fi
       local project_dir
       project_dir=$(resolve_project_dir "${cmd}") || exit 1
 

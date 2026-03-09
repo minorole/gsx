@@ -178,6 +178,8 @@ setup_wizard() {
 projects_root: ${projects_root}
 default_layout: ${default_layout}
 ${tabs_yaml}
+# Optional: same as passing --here
+# current_window: true
 
 default_commands:
 $(echo -e "${commands_yaml}")

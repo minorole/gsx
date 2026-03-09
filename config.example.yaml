@@ -13,6 +13,9 @@ default_layout: duo
 # If omitted or set to 1, creates a single window with the layout above
 # tabs: 3
 
+# Optional: Reuse current Ghostty window by default (same as --here)
+# current_window: true
+
 # Default commands for each section (empty string = just shell)
 # Commands fill in order: left-to-right, top-to-bottom
 # For multiple tabs: tab1-section1, tab1-section2, tab2-section1, tab2-section2, ...

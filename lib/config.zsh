@@ -19,6 +19,7 @@ CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 PROJECTS_ROOT=""
 DEFAULT_LAYOUT="3-col"
 TABS_COUNT=1  # Number of tabs (1 = single window, 2-10 = multiple tabs)
+DEFAULT_REUSE_WINDOW=false  # true = default to --here behavior
 
 # Array of commands in spatial order (left-to-right, top-to-bottom)
 typeset -a PANE_COMMANDS
@@ -33,6 +34,7 @@ parse_config() {
   PROJECTS_ROOT=""
   DEFAULT_LAYOUT="3-col"
   TABS_COUNT=1
+  DEFAULT_REUSE_WINDOW=false
   PANE_COMMANDS=()
 
   local line in_commands=false
@@ -61,6 +63,15 @@ parse_config() {
       DEFAULT_LAYOUT="${match[1]}"
     elif [[ "${line}" =~ ^tabs:[[:space:]]*([0-9]+)$ ]]; then
       TABS_COUNT="${match[1]}"
+    elif [[ "${line}" =~ ^(current_window|reuse_window):[[:space:]]*(.+)$ ]]; then
+      local bool_value="${match[2]}"
+      bool_value="${bool_value//\"/}"
+      bool_value="${bool_value//\'/}"
+      bool_value="${bool_value:l}"
+      case "${bool_value}" in
+        true|yes|1|on) DEFAULT_REUSE_WINDOW=true ;;
+        false|no|0|off) DEFAULT_REUSE_WINDOW=false ;;
+      esac
     fi
 
     # Parse default commands (array format: "- value")

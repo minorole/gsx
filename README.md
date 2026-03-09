@@ -146,6 +146,7 @@ Config lives at `~/.config/gpane/config.yaml` (new installs) or `~/.config/gsx/c
 ```yaml
 projects_root: ~/Projects
 default_layout: quad
+current_window: true  # Optional: default to --here behavior
 
 # Commands for each pane (left-to-right, top-to-bottom)
 default_commands:
