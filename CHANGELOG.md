@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Config option for `--here` default**: `current_window: true` (or `reuse_window: true`) in config makes gpane use the current Ghostty window by default instead of opening a new one; passing `--here` / `--current-window` on the CLI still works and takes precedence
+
 ## [0.3.1] - 2026-02-16
 
 ### Fixed
