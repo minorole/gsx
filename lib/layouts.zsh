@@ -19,6 +19,8 @@ LAYOUT_ALIASES[stacked]="1-1"
 LAYOUT_ALIASES[quad]="2-2"
 LAYOUT_ALIASES[dashboard]="1-3"
 LAYOUT_ALIASES[wide]="3-1"
+LAYOUT_ALIASES[main-side]="1|2"
+LAYOUT_ALIASES[side-main]="2|1"
 
 # Resolve layout alias to row notation
 # Usage: resolve_layout_alias "quad" -> "2-2"
@@ -45,11 +47,18 @@ parse_layout_spec() {
 # Compute total panes from layout spec
 compute_total_panes() {
     local spec=$1
-    local -a rows=(${(s:-:)spec})
     local total=0
-    for r in "${rows[@]}"; do
-        total=$((total + r))
-    done
+    if [[ "$spec" == *"|"* ]]; then
+        local -a cols=(${(s:|:)spec})
+        for c in "${cols[@]}"; do
+            total=$((total + c))
+        done
+    else
+        local -a rows=(${(s:-:)spec})
+        for r in "${rows[@]}"; do
+            total=$((total + r))
+        done
+    fi
     echo $total
 }
 
@@ -76,31 +85,47 @@ prepend_cd_to_commands() {
 validate_layout() {
     local spec=$1
 
-    # Must match pattern: digits separated by dashes
-    if [[ ! "$spec" =~ ^[1-9](-[1-9])*$ ]]; then
-        echo "Invalid layout format: $spec (must be like '2', '2-2', '1-3')" >&2
-        return 1
-    fi
-
-    local -a rows=(${(s:-:)spec})
-    local num_rows=${#rows[@]}
-    local total=0
-
-    # Max 4 rows
-    if ((num_rows > 4)); then
-        echo "Too many rows: $num_rows (max 4)" >&2
-        return 1
-    fi
-
-    # Count total panes
-    for r in "${rows[@]}"; do
-        total=$((total + r))
-    done
-
-    # Max 10 panes
-    if ((total > 10)); then
-        echo "Too many panes: $total (max 10)" >&2
-        return 1
+    # Column layout uses | delimiter, row layout uses -
+    if [[ "$spec" == *"|"* ]]; then
+        # Column layout: digits separated by pipes
+        if [[ ! "$spec" =~ '^[1-9]([|][1-9])*$' ]]; then
+            echo "Invalid column layout format: $spec (must be like '1|2', '2|1|2')" >&2
+            return 1
+        fi
+        local -a cols=(${(s:|:)spec})
+        local num_cols=${#cols[@]}
+        local total=0
+        if ((num_cols > 4)); then
+            echo "Too many columns: $num_cols (max 4)" >&2
+            return 1
+        fi
+        for c in "${cols[@]}"; do
+            total=$((total + c))
+        done
+        if ((total > 10)); then
+            echo "Too many panes: $total (max 10)" >&2
+            return 1
+        fi
+    else
+        # Row layout: digits separated by dashes
+        if [[ ! "$spec" =~ ^[1-9](-[1-9])*$ ]]; then
+            echo "Invalid layout format: $spec (must be like '2', '2-2', '1-3')" >&2
+            return 1
+        fi
+        local -a rows=(${(s:-:)spec})
+        local num_rows=${#rows[@]}
+        local total=0
+        if ((num_rows > 4)); then
+            echo "Too many rows: $num_rows (max 4)" >&2
+            return 1
+        fi
+        for r in "${rows[@]}"; do
+            total=$((total + r))
+        done
+        if ((total > 10)); then
+            echo "Too many panes: $total (max 10)" >&2
+            return 1
+        fi
     fi
 
     return 0
@@ -126,6 +151,8 @@ get_layout_info() {
         2-2) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top-left" "Top-right" "Bottom-left" "Bottom-right") ;;
         1-3) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top (main)" "Bottom-left" "Bottom-middle" "Bottom-right") ;;
         3-1) LAYOUT_PANE_COUNT=4; LAYOUT_PANE_LABELS=("Top-left" "Top-middle" "Top-right" "Bottom (main)") ;;
+        '1|2') LAYOUT_PANE_COUNT=3; LAYOUT_PANE_LABELS=("Left (main)" "Right-top" "Right-bottom") ;;
+        '2|1') LAYOUT_PANE_COUNT=3; LAYOUT_PANE_LABELS=("Left-top" "Left-bottom" "Right (main)") ;;
         *)
             # Custom layout - count panes from spec
             LAYOUT_PANE_COUNT=$(compute_total_panes "$resolved")
@@ -176,7 +203,13 @@ layout_hybrid() {
     done
 
     prepend_cd_to_commands "${project_dir}" "${cmds[@]}"
-    run_layout "layout-hybrid" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${tabs_count}" "${PREPARED_COMMANDS[@]}"
+
+    # Route to column layout script if spec uses | delimiter
+    if [[ "$layout_spec" == *"|"* ]]; then
+        run_layout "layout-column" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "tabs:${tabs_count}" "${PREPARED_COMMANDS[@]}"
+    else
+        run_layout "layout-hybrid" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${tabs_count}" "${PREPARED_COMMANDS[@]}"
+    fi
 }
 
 # Check for deprecated layout: tabs syntax
@@ -231,7 +264,13 @@ layout_dynamic() {
     done
 
     prepend_cd_to_commands "${project_dir}" "${spatial_cmds[@]}"
-    run_layout "layout-dynamic" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${PREPARED_COMMANDS[@]}"
+
+    # Route to column layout script if spec uses | delimiter
+    if [[ "$layout_spec" == *"|"* ]]; then
+        run_layout "layout-column" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${PREPARED_COMMANDS[@]}"
+    else
+        run_layout "layout-dynamic" "${label}" "${reuse_window}" "${project_dir}" "${layout_spec}" "${PREPARED_COMMANDS[@]}"
+    fi
 }
 
 # Run a layout script with progress dots
