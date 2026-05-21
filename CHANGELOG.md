@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-21
+
 ### Added
 
+- Release automation script for version bumps, tags, GitHub releases, and Homebrew update triggers.
 - `current_window: true` config option to reuse the current Ghostty window by default.
 - Column layouts with pipe notation such as `1|2`, plus `main-side` and `side-main` aliases.
 
@@ -201,6 +204,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-update checker (checks GitHub releases daily)
 - Uninstall command (`gsx uninstall`)
 
+[0.3.2]: https://github.com/minorole/gsx/releases/tag/v0.3.2
 [0.3.1]: https://github.com/minorole/gsx/releases/tag/v0.3.1
 [0.3.0]: https://github.com/minorole/gsx/releases/tag/v0.3.0
 [0.2.7]: https://github.com/minorole/gsx/releases/tag/v0.2.7
