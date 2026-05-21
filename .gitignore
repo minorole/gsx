@@ -17,5 +17,12 @@ homebrew/
 
 # Local temp folder
 temp/
+
+# Personal/local agent instructions and workflow artifacts
 CLAUDE.md
 AGENTS.md
+.claude/
+.codex/
+.cursor/
+.gemini/
+docs/superpowers/
