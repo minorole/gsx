@@ -25,12 +25,14 @@ show_layout_menu() {
     echo "  4) quad       2x2 grid                     [1|2] / [3|4]"
     echo "  5) dashboard  1 main + 3 below             [  1  ] / [2|3|4]"
     echo "  6) wide       3 top + 1 bottom             [1|2|3] / [  4  ]"
-    echo "  7) custom     Enter your own (e.g. 2-3, 1-2-1)"
+    echo "  7) main-side  1 main left + 2 right        [ 1 ] | [2] / [3]"
+    echo "  8) side-main  2 left + 1 main right        [1] / [2] | [ 3 ]"
+    echo "  9) custom     Enter your own (e.g. 2-3, 1|2|1)"
   else
     echo "Sections per tab:"
     echo "  1) duo        2) trio       3) stacked"
     echo "  4) quad       5) dashboard  6) wide"
-    echo "  7) custom"
+    echo "  7) main-side  8) side-main  9) custom"
   fi
   echo ""
 }
@@ -60,10 +62,14 @@ prompt_layout_choice() {
     4) SELECTED_LAYOUT="quad" ;;
     5) SELECTED_LAYOUT="dashboard" ;;
     6) SELECTED_LAYOUT="wide" ;;
-    7)
+    7) SELECTED_LAYOUT="main-side" ;;
+    8) SELECTED_LAYOUT="side-main" ;;
+    9)
       echo ""
-      echo "Custom layout: N-M-O (sections per row, max 10 sections, max 4 rows)"
-      echo "Examples: 2-2 (4 sections), 1-3 (4 sections), 2-3-1 (6 sections)"
+      echo "Custom layout: use rows N-M-O or columns N|M|O."
+      echo "Rows split top-to-bottom: 2-2 (4 sections), 1-3 (1 top + 3 bottom)."
+      echo "Columns split left-to-right: 1|2 (1 left + 2 right), 2|1 (2 left + 1 right)."
+      echo "Max 10 sections total; max 4 rows or columns."
       local custom_layout=""
       while true; do
         prompt_input "Layout: " custom_layout
@@ -71,7 +77,7 @@ prompt_layout_choice() {
           SELECTED_LAYOUT="${custom_layout}"
           break
         fi
-        echo "Invalid layout. Try again (e.g., 2-2, 1-3, 2-3-1)"
+        echo "Invalid layout. Try again (e.g., 2-2, 1-3, 1|2, 2|1)"
       done
       ;;
     "")

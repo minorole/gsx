@@ -20,10 +20,23 @@ Options:
   --dry-run               Show what would happen without opening windows
   --here, --current-window
                           Use current Ghostty window instead of creating new one
+                          Set current_window: true in config to make this default
                           (For multiple projects, only the first uses current window)
+  --new-window            Create a new Ghostty window, overriding current_window
 
 Layouts:
-  Row notation: "2" (2 side-by-side), "2-2" (4-pane grid), "1-3" (1 top + 3 bottom)
+  Row notation uses '-' for top-to-bottom rows:
+    "2"      2 sections side-by-side
+    "2-2"    2 top + 2 bottom (4 sections)
+    "1-3"    1 top + 3 bottom (4 sections)
+
+  Column notation uses '|' for left-to-right columns:
+    "1|2"    1 main left + 2 stacked on the right
+    "2|1"    2 stacked on the left + 1 main right
+
+  Command order is spatial. Rows fill left-to-right, then top-to-bottom.
+  Columns fill top-to-bottom, then left-to-right.
+  Max 10 sections total; max 4 rows or columns.
 
   Aliases:
     duo        2 sections side-by-side
@@ -32,6 +45,8 @@ Layouts:
     dashboard  1 top + 3 bottom (4 sections)
     stacked    2 sections vertically
     wide       3 top + 1 bottom (4 sections)
+    main-side  1 main left + 2 stacked on the right
+    side-main  2 stacked on the left + 1 main right
 
 Tabs (optional):
   Add 'tabs: N' to your config (2-10) to create multiple tabs.
@@ -43,6 +58,8 @@ Examples:
   gpane setup               # First-time setup
   gpane myproject           # Launch session in new window
   gpane myproject --here    # Launch session in current window
+  gpane myproject --new-window
+                            # Override current_window config for this launch
   gpane myproject --dry-run # Preview without launching
   gpane list                # See all projects
   gpane ./help              # Open project named 'help' (use ./ for reserved names)

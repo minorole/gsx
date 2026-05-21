@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `current_window: true` config option to reuse the current Ghostty window by default.
+- Column layouts with pipe notation such as `1|2`, plus `main-side` and `side-main` aliases.
+
+### Changed
+
+- Clarified that `projects_root` powers list, picker, and project-name lookup while absolute paths, relative paths, and current-directory fallback remain supported.
+- Removed stale split-directory known issue from the README.
+
 ## [0.3.1] - 2026-02-16
 
 ### Fixed

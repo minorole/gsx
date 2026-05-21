@@ -6,15 +6,21 @@
 projects_root: ~/Projects
 
 # Default layout (sections per tab)
-# Options: duo, trio, quad, dashboard, stacked, wide, or row notation (2-2, 1-3, etc.)
+# Options: duo, trio, quad, dashboard, stacked, wide, main-side, side-main,
+#          row notation (2-2, 1-3, etc.), or column notation (1|2, 2|1, etc.)
 default_layout: duo
+
+# Optional: Reuse the current Ghostty window by default
+# Same behavior as passing --here / --current-window
+# current_window: true
 
 # Optional: Number of tabs (2-10)
 # If omitted or set to 1, creates a single window with the layout above
 # tabs: 3
 
 # Default commands for each section (empty string = just shell)
-# Commands fill in order: left-to-right, top-to-bottom
+# Row layouts fill left-to-right, then top-to-bottom
+# Column layouts fill top-to-bottom, then left-to-right
 # For multiple tabs: tab1-section1, tab1-section2, tab2-section1, tab2-section2, ...
 default_commands:
   - "claude"

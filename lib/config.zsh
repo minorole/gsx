@@ -18,10 +18,52 @@ CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 # Global config variables (set by parse_config)
 PROJECTS_ROOT=""
 DEFAULT_LAYOUT="3-col"
+DEFAULT_REUSE_WINDOW=false
+CONFIG_WARNED_INVALID_CURRENT_WINDOW=false
 TABS_COUNT=1  # Number of tabs (1 = single window, 2-10 = multiple tabs)
 
 # Array of commands in spatial order (left-to-right, top-to-bottom)
 typeset -a PANE_COMMANDS
+
+# Clean up simple top-level scalar values only.
+cleanup_config_scalar() {
+  local value=$1
+
+  value="${value%%#*}"
+
+  if [[ "${value}" =~ ^[[:space:]]*(.*)$ ]]; then
+    value="${match[1]}"
+  fi
+  if [[ "${value}" =~ ^(.*[^[:space:]])[[:space:]]*$ ]]; then
+    value="${match[1]}"
+  else
+    value=""
+  fi
+
+  if [[ "${value}" == \"*\" && "${value}" == *\" ]]; then
+    value="${value[2,-2]}"
+  elif [[ "${value}" == \'*\' && "${value}" == *\' ]]; then
+    value="${value[2,-2]}"
+  fi
+
+  print -r -- "${value}"
+}
+
+parse_config_bool() {
+  local value=$1
+
+  case "${value:l}" in
+    true|yes|1|on)
+      print -r -- "true"
+      ;;
+    false|no|0|off)
+      print -r -- "false"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
 
 # Parse the main config file
 parse_config() {
@@ -32,10 +74,12 @@ parse_config() {
   # Reset to defaults
   PROJECTS_ROOT=""
   DEFAULT_LAYOUT="3-col"
+  DEFAULT_REUSE_WINDOW=false
   TABS_COUNT=1
   PANE_COMMANDS=()
 
   local line in_commands=false
+  local current_window_value current_window_bool
 
   while IFS= read -r line || [[ -n "${line}" ]]; do
     # Skip comments and empty lines
@@ -59,6 +103,17 @@ parse_config() {
       PROJECTS_ROOT="${PROJECTS_ROOT/#\~/${HOME}}"
     elif [[ "${line}" =~ ^default_layout:[[:space:]]*(.+)$ ]]; then
       DEFAULT_LAYOUT="${match[1]}"
+    elif [[ "${line}" =~ ^current_window:[[:space:]]*(.*)$ ]]; then
+      current_window_value=$(cleanup_config_scalar "${match[1]}")
+      if current_window_bool=$(parse_config_bool "${current_window_value}"); then
+        DEFAULT_REUSE_WINDOW="${current_window_bool}"
+      else
+        DEFAULT_REUSE_WINDOW=false
+        if [[ "${CONFIG_WARNED_INVALID_CURRENT_WINDOW}" != true ]]; then
+          print -u2 -- "Warning: invalid current_window value '${current_window_value}', using false"
+          CONFIG_WARNED_INVALID_CURRENT_WINDOW=true
+        fi
+      fi
     elif [[ "${line}" =~ ^tabs:[[:space:]]*([0-9]+)$ ]]; then
       TABS_COUNT="${match[1]}"
     fi

@@ -23,6 +23,7 @@ source "${GPANE_ROOT}/lib/setup.zsh"
 # Global flags
 DRY_RUN=false
 REUSE_WINDOW=false
+REUSE_WINDOW_EXPLICIT=false
 
 # Open session for a project
 # Sets PROJECT_LAYOUT as side effect (for caller to use in header)
@@ -38,6 +39,19 @@ open_session() {
   local resolved_layout
   resolved_layout=$(resolve_layout_alias "${DEFAULT_LAYOUT}")
   PROJECT_LAYOUT="${resolved_layout}"
+
+  # Validate before any path computes pane counts from the layout string.
+  if ! check_deprecated_tabs_layout "${resolved_layout}"; then
+    return 1
+  fi
+
+  if ! validate_layout "${resolved_layout}"; then
+    return 1
+  fi
+
+  if ! validate_tabs_count "${TABS_COUNT}"; then
+    return 1
+  fi
 
   if [[ "${DRY_RUN}" == true ]]; then
     local window_mode="new"
@@ -76,11 +90,6 @@ open_session() {
     return 0
   fi
 
-  # Check for deprecated layout: tabs syntax
-  if ! check_deprecated_tabs_layout "${resolved_layout}"; then
-    return 1
-  fi
-
   # Route to appropriate layout handler
   if (( TABS_COUNT > 1 )); then
     layout_hybrid "${project_name}" "${project_dir}" "${resolved_layout}" "${TABS_COUNT}" "${reuse_window}" "${PANE_COMMANDS[@]}"
@@ -96,7 +105,14 @@ main() {
   # Check for flags anywhere in args
   for arg in "$@"; do
     [[ "${arg}" == "--dry-run" ]] && DRY_RUN=true
-    [[ "${arg}" == "--here" || "${arg}" == "--current-window" ]] && REUSE_WINDOW=true
+    if [[ "${arg}" == "--here" || "${arg}" == "--current-window" ]]; then
+      REUSE_WINDOW=true
+      REUSE_WINDOW_EXPLICIT=true
+    fi
+    if [[ "${arg}" == "--new-window" ]]; then
+      REUSE_WINDOW=false
+      REUSE_WINDOW_EXPLICIT=true
+    fi
   done
 
   # Skip preflight for help/version
@@ -130,7 +146,7 @@ main() {
     uninstall)
       do_uninstall
       ;;
-    ""|--dry-run|--here|--current-window)
+    ""|--dry-run|--here|--current-window|--new-window)
       if ! config_exists; then
         echo "Welcome to gpane! Let's set it up."
         setup_wizard
@@ -138,6 +154,9 @@ main() {
         check_for_updates
         [[ "${DRY_RUN}" == false ]] && check_ghostty
         parse_config
+        if [[ "${REUSE_WINDOW_EXPLICIT}" == false && "${DEFAULT_REUSE_WINDOW}" == true ]]; then
+          REUSE_WINDOW=true
+        fi
         interactive_select || exit 1
 
         local count=${#SELECTED_PROJECTS[@]}
@@ -168,6 +187,9 @@ main() {
       check_for_updates
       [[ "${DRY_RUN}" == false ]] && check_ghostty
       parse_config
+      if [[ "${REUSE_WINDOW_EXPLICIT}" == false && "${DEFAULT_REUSE_WINDOW}" == true ]]; then
+        REUSE_WINDOW=true
+      fi
       local project_dir
       project_dir=$(resolve_project_dir "${cmd}") || exit 1
 

@@ -92,6 +92,7 @@ The wizard asks for your projects folder, default layout, and commands for each 
 gpane                     # Interactive picker
 gpane myproject           # Open in new window
 gpane myproject --here    # Open in current Ghostty window
+gpane myproject --new-window # Override current_window config
 gpane myproject --dry-run # Preview without opening windows
 
 # Nested projects — works from any directory
@@ -123,11 +124,12 @@ gpane version   # Show version
 | `quad` | 4 | 2×2 grid |
 | `dashboard` | 4 | 1 main top, 3 below |
 | `wide` | 4 | 3 top, 1 bottom |
-| `tabs` | 1-10 | Multiple Ghostty tabs |
+| `main-side` | 3 | 1 main left, 2 stacked on the right |
+| `side-main` | 3 | 2 stacked on the left, 1 main right |
 
 ### Custom layouts
 
-Row notation — numbers separated by dashes, each number = panes in that row:
+Row notation — numbers separated by dashes, each number = panes in that row. Commands run left-to-right in each row, then top-to-bottom:
 
 ```
 2-2     → 4 panes (2 top, 2 bottom)
@@ -137,7 +139,15 @@ Row notation — numbers separated by dashes, each number = panes in that row:
 2-2-5-1 → 10 panes
 ```
 
-Max 10 panes, max 4 rows.
+Column notation — numbers separated by pipes, each number = panes in that column. Commands run top-to-bottom in each column, then left-to-right:
+
+```
+1|2     → 3 panes (1 left, 2 right)
+2|1     → 3 panes (2 left, 1 right)
+2|3|1   → 6 panes (2 left, 3 middle, 1 right)
+```
+
+Max 10 panes, max 4 rows or columns.
 
 ## Configuration
 
@@ -146,8 +156,11 @@ Config lives at `~/.config/gpane/config.yaml` (new installs) or `~/.config/gsx/c
 ```yaml
 projects_root: ~/Projects
 default_layout: quad
+current_window: true
 
-# Commands for each pane (left-to-right, top-to-bottom)
+# Commands for each pane:
+# - row layouts: left-to-right, then top-to-bottom
+# - column layouts: top-to-bottom, then left-to-right
 default_commands:
   - "claude"
   - "aider"
@@ -171,21 +184,9 @@ projects:
       - ""
 ```
 
-## Known Issues
+`projects_root` is the default folder gpane searches for `gpane list`, the interactive picker, and project names like `gpane myproject`. It does not block absolute paths, relative paths such as `./frontend`, or the current-directory fallback for nested projects.
 
-### Split panes may start in wrong directory
-
-On some systems, Ghostty splits happen faster than the initial `cd` completes, causing panes to inherit the wrong working directory.
-
-**Workaround**: Prepend `cd` to your commands in config:
-
-```yaml
-default_commands:
-  - "cd ~/Projects/myapp && claude"
-  - "cd ~/Projects/myapp && npm run dev"
-```
-
-**Upstream fix**: Ghostty PR [#9158](https://github.com/ghostty-org/ghostty/pull/9158) adds `split-inherit-working-directory` option. Once merged, gpane will support this natively.
+Set `current_window: true` to make launches reuse the current Ghostty window by default, the same behavior as `gpane myproject --here`.
 
 ## Uninstalling
 
